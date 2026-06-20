@@ -7,6 +7,9 @@ export default defineConfig({
   description:
     'A templating language for Go — templ-style components, JSX-style markup, compiled to plain Go.',
   base: '/website/',
+  markdown: {
+    languageAlias: { gsx: 'jsx' },
+  },
   themeConfig: {
     nav: [
       { text: 'Guide', link: '/guide/vision' },
