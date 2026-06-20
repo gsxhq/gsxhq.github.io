@@ -1,0 +1,17 @@
+{
+  "name": "@gsxhq/website",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sync": "node scripts/sync-docs.mjs",
+    "predev": "node scripts/sync-docs.mjs --link",
+    "dev": "vitepress dev",
+    "prebuild": "node scripts/sync-docs.mjs",
+    "build": "vitepress build",
+    "preview": "vitepress preview"
+  },
+  "devDependencies": {
+    "vitepress": "^1.6.3"
+  }
+}
