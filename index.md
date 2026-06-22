@@ -23,7 +23,10 @@ features:
     details: gsx.Node has the identical method set to templ.Component, so gsx output drops into the templ ecosystem without importing templ.
 ---
 
-> **Status — alpha.** Language design is stable; parser, runtime, and codegen
-> phase&nbsp;1 are done. The CLI is a work in progress, so gsx is **not yet
-> runnable end-to-end**. Follow the
+> **Status — alpha.** gsx is runnable end-to-end: `gsx generate` compiles
+> `.gsx`&nbsp;→&nbsp;`.x.go` (plus `gsx fmt` and `gsx info`). Codegen covers
+> interpolation, control flow, attributes with contextual escaping, the `|>`
+> pipeline + filters, components/props/`{children}`, method components, named
+> slots, and attribute fallthrough. Still in progress: some CLI commands
+> (`vet`/`lsp`), `style` composition, and structured diagnostics. Follow the
 > [roadmap](https://github.com/gsxhq/gsx/blob/main/docs/ROADMAP.md).
