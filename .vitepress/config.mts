@@ -1,12 +1,12 @@
 import { defineConfig } from 'vitepress'
 
-// Project Pages live at https://gsxhq.github.io/website/ — switch base to '/' if a
-// custom domain is added later.
+// Org Pages site served at the root: https://gsxhq.github.io/ (repo is named
+// gsxhq.github.io), so base is '/'.
 export default defineConfig({
   title: 'gsx',
   description:
     'A templating language for Go — templ-style components, JSX-style markup, compiled to plain Go.',
-  base: '/website/',
+  base: '/',
   // In CI the gsx repo is checked out into ./_gsx; exclude it (and the repo's own
   // README) so VitePress only builds index.md + the synced guide/ pages — not the
   // internal specs/plans/skill, which contain `{ }`/`{{ }}` that break Vue parsing.

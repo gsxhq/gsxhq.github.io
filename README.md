@@ -1,7 +1,8 @@
-# gsxhq/website
+# gsxhq.github.io
 
 The documentation site for [gsx](https://github.com/gsxhq/gsx), built with
-[VitePress](https://vitepress.dev) and deployed to GitHub Pages.
+[VitePress](https://vitepress.dev) and deployed to GitHub Pages at
+<https://gsxhq.github.io/>.
 
 ## How content works
 
