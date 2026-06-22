@@ -7,6 +7,10 @@ export default defineConfig({
   description:
     'A templating language for Go — templ-style components, JSX-style markup, compiled to plain Go.',
   base: '/website/',
+  // In CI the gsx repo is checked out into ./_gsx; exclude it (and the repo's own
+  // README) so VitePress only builds index.md + the synced guide/ pages — not the
+  // internal specs/plans/skill, which contain `{ }`/`{{ }}` that break Vue parsing.
+  srcExclude: ['_gsx/**', 'README.md'],
   markdown: {
     languageAlias: { gsx: 'jsx' },
   },
