@@ -13,5 +13,11 @@
   },
   "devDependencies": {
     "vitepress": "^1.6.3"
+  },
+  "dependencies": {
+    "@codemirror/lang-javascript": "^6.2.5",
+    "@codemirror/state": "^6.7.0",
+    "@codemirror/view": "^6.43.2",
+    "codemirror": "^6.0.2"
   }
 }

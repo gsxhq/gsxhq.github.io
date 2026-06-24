@@ -1,0 +1,29 @@
+/* Full-bleed layout for the Playground page: drop VitePress's centered prose
+   container so the workspace can use the entire viewport width. Keep the top
+   offset equal to the fixed navbar height so the workspace sits below it.
+   Activated by `pageClass: gsx-pg-page` in playground.md frontmatter. */
+.gsx-pg-page .VPContent {
+  padding: var(--vp-nav-height, 64px) 0 0 0 !important;
+  margin: 0 !important;
+  max-width: none !important;
+  width: 100%;
+}
+
+.gsx-pg-page .VPPage {
+  padding: 0 !important;
+  margin: 0 !important;
+  max-width: none !important;
+}
+
+/* The page content wrapper VitePress injects around markdown content. */
+.gsx-pg-page .vp-doc,
+.gsx-pg-page main {
+  padding: 0 !important;
+  margin: 0 !important;
+  max-width: none !important;
+}
+
+/* No page scroll — the workspace manages its own panes. */
+.gsx-pg-page {
+  overflow: hidden;
+}
