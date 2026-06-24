@@ -455,7 +455,8 @@ onBeforeUnmount(() => {
       </div>
       <div class="pg__right">
         <span class="pg__timing" :class="{ live: loading, edited: dirty }">
-          <span class="pg__pulse"></span>
+          <span v-if="loading" class="pg__spinner pg__spinner--sm"></span>
+          <span v-else class="pg__pulse"></span>
           {{ loading ? 'compiling' : dirty ? 'edited · press Run' : ms ? ms + ' ms' : 'ready' }}
         </span>
         <label class="pg__toggle" :class="{ on: autorun }">
@@ -508,6 +509,10 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="pg__body">
+          <div v-if="loading" class="pg__loading">
+            <span class="pg__spinner"></span>
+            compiling…
+          </div>
           <iframe
             v-show="activeTab === 'preview'"
             class="pg__preview"
@@ -659,6 +664,31 @@ onBeforeUnmount(() => {
   box-shadow: 0 0 0 0 rgba(0, 173, 216, 0.5);
 }
 .pg__timing.live .pg__pulse { animation: pg-pulse 1s infinite; }
+/* Spinner — shown while a render is compiling (badge + output overlay). */
+.pg__spinner {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2.5px solid var(--line);
+  border-top-color: var(--accent);
+  animation: pg-spin 0.7s linear infinite;
+}
+.pg__spinner--sm { width: 12px; height: 12px; border-width: 2px; }
+@keyframes pg-spin { to { transform: rotate(360deg); } }
+.pg__loading {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: color-mix(in srgb, var(--panel) 72%, transparent);
+  color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+}
 @keyframes pg-pulse {
   0% { box-shadow: 0 0 0 0 rgba(0,173,216,0.5); }
   70% { box-shadow: 0 0 0 6px rgba(0,173,216,0); }
