@@ -29,7 +29,7 @@ export default defineConfig({
     nav: [
       { text: 'Guide', link: '/guide/vision' },
       { text: 'Playground', link: '/playground' },
-      { text: 'Examples', link: 'https://github.com/gsxhq/gsx/tree/main/examples' },
+      { text: 'Examples', link: '/guide/examples' },
       { text: 'Roadmap', link: 'https://github.com/gsxhq/gsx/blob/main/docs/ROADMAP.md' },
     ],
     sidebar: {
@@ -41,6 +41,7 @@ export default defineConfig({
             { text: 'Principles', link: '/guide/principles' },
             { text: 'Syntax', link: '/guide/syntax' },
             { text: 'CLI', link: '/guide/cli' },
+            { text: 'Examples', link: '/guide/examples' },
           ],
         },
       ],
