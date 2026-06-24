@@ -39,3 +39,23 @@ if (link && local) {
   cpSync(src, DEST, { recursive: true })
   console.log(`copied guide: ${src} -> ${DEST}`)
 }
+
+// Also sync the generated playground presets (single source of the example
+// gallery) into the theme, so the dropdown matches the docs Examples page.
+function syncPresets() {
+  let jsonSrc
+  if (process.env.GSX_DOCS_SRC) {
+    jsonSrc = resolve(process.env.GSX_DOCS_SRC, 'docs', 'examples.json')
+  } else {
+    const sibling = resolve('..', 'gsx', 'docs', 'examples.json')
+    if (existsSync(sibling)) jsonSrc = sibling
+  }
+  const dest = resolve('.vitepress/theme/presets.generated.json')
+  if (jsonSrc && existsSync(jsonSrc)) {
+    cpSync(jsonSrc, dest)
+    console.log(`copied presets: ${jsonSrc} -> ${dest}`)
+  } else {
+    console.log('presets: no docs/examples.json source; keeping committed presets.generated.json')
+  }
+}
+syncPresets()

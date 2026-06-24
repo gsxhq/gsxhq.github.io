@@ -4,6 +4,7 @@ import { useData } from 'vitepress'
 import hljs from 'highlight.js/lib/core'
 import goLang from 'highlight.js/lib/languages/go'
 import xmlLang from 'highlight.js/lib/languages/xml'
+import generatedPresets from './presets.generated.json'
 hljs.registerLanguage('go', goLang)
 hljs.registerLanguage('xml', xmlLang)
 
@@ -14,73 +15,10 @@ const { isDark } = useData()
 const API =
   (import.meta as any).env?.VITE_GSX_PLAYGROUND_API ?? 'http://localhost:8088'
 
-// Example presets double as the live, authentic "documented examples": each one
-// runs through the real gsx compiler when selected.
-const presets = [
-  {
-    name: 'Interpolation',
-    source: `package views
-
-component Greeting(name string, count int) {
-	<p>Hello, {name}! You have {count} messages.</p>
-}
-`,
-    invoke: 'Greeting(GreetingProps{Name: "World", Count: 3})',
-  },
-  {
-    name: 'Control flow',
-    source: `package views
-
-component Inbox(name string, count int) {
-	<section>
-		<h1>Hi {name}</h1>
-		{ if count > 0 {
-			<p class="badge">{count} new</p>
-		} else {
-			<p>all caught up</p>
-		} }
-	</section>
-}
-`,
-    invoke: 'Inbox(InboxProps{Name: "World", Count: 2})',
-  },
-  {
-    name: 'Composable class',
-    source: `package views
-
-component Tag(label string, active bool) {
-	<span class={ "tag", "tag--active": active }>
-		{label}
-	</span>
-}
-`,
-    invoke: 'Tag(TagProps{Label: "stable", Active: true})',
-  },
-  {
-    name: 'Auto-escaping',
-    source: `package views
-
-// User input is HTML-escaped by construction — no XSS.
-component Comment(body string) {
-	<blockquote>{body}</blockquote>
-}
-`,
-    invoke: 'Comment(CommentProps{Body: "<img src=x onerror=alert(1)>"})',
-  },
-  {
-    name: 'Composition',
-    source: `package views
-
-component Card(title string) {
-	<article class="card">
-		<h3>{title}</h3>
-		<div class="card__body">{children}</div>
-	</article>
-}
-`,
-    invoke: 'Card(CardProps{Title: "Hello", Children: gsx.Raw("<em>composed</em>")})',
-  },
-]
+// Example presets are generated from the single-source examples/*.txtar fixtures
+// (see the gsx repo internal/examplegen). The docs Examples page, this dropdown,
+// and the backend cache-seed all come from the same source — no drift.
+const presets = generatedPresets as { name: string; category?: string; source: string; invoke: string }[]
 
 const presetIdx = ref(0)
 const source = ref(presets[0].source)
