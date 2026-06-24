@@ -270,7 +270,7 @@ onMounted(async () => {
   // A shared link overrides the default preset before the editor is created.
   loadFromHash()
 
-  const [{ EditorView, basicSetup }, { javascript }, { EditorState, Compartment, Prec }, { keymap }, lang, hl] =
+  const [{ EditorView, basicSetup }, { javascript }, { EditorState, Compartment, Prec, RangeSetBuilder }, { keymap, Decoration, ViewPlugin }, lang, hl] =
     await Promise.all([
       import('codemirror'),
       import('@codemirror/lang-javascript'),
@@ -281,6 +281,34 @@ onMounted(async () => {
     ])
   const { HighlightStyle, syntaxHighlighting } = lang as any
   const { tags: t } = hl as any
+
+  // Highlight Go-Playground-style `-- file.gsx --` separator lines so multi-file
+  // sources read as dividers, not code.
+  const fileSeparator = /^--\s+\S+\s+--\s*$/
+  const separatorDeco = Decoration.line({ class: 'pg__sep-line' })
+  const separatorPlugin = ViewPlugin.fromClass(
+    class {
+      decorations: any
+      constructor(view: any) {
+        this.decorations = this.build(view)
+      }
+      update(u: any) {
+        if (u.docChanged || u.viewportChanged) this.decorations = this.build(u.view)
+      }
+      build(view: any) {
+        const b = new RangeSetBuilder()
+        for (const { from, to } of view.visibleRanges) {
+          for (let pos = from; pos <= to; ) {
+            const line = view.state.doc.lineAt(pos)
+            if (fileSeparator.test(line.text)) b.add(line.from, line.from, separatorDeco)
+            pos = line.to + 1
+          }
+        }
+        return b.build()
+      }
+    },
+    { decorations: (v: any) => v.decorations },
+  )
 
   const scroller = {
     fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
@@ -349,6 +377,7 @@ onMounted(async () => {
         ),
         basicSetup,
         javascript({ jsx: true }),
+        separatorPlugin,
         themeCompartment.of(buildEditorTheme(isDark.value)),
         EditorView.lineWrapping,
         EditorView.updateListener.of((u: any) => {
@@ -875,6 +904,15 @@ onBeforeUnmount(() => {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 13px;
   padding: 8px 4px;
+}
+
+/* Multi-file separator lines: `-- file.gsx --`
+   Must use :deep() — CodeMirror generates the .cm-line DOM; Vue scoped styles
+   won't pierce it without this. */
+.pg__cm :deep(.pg__sep-line) {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-top: 1px solid var(--line);
+  font-weight: 600;
 }
 
 @media (max-width: 720px) {
