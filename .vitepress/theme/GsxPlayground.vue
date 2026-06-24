@@ -89,11 +89,24 @@ const diagnostics = ref<
 const error = ref('')
 const ms = ref(0)
 const loading = ref(false)
-const autorun = ref(true)
+// Off by default: each render is a real server compile (~1.5s of Cloud Run CPU),
+// so don't fire on every keystroke pause. The initial load and preset switches
+// still render (cache hits, ~free); free-form edits need an explicit Run.
+const autorun = ref(false)
 const activeTab = ref<'preview' | 'html' | 'go' | 'problems'>('preview')
 const split = ref(50)
 const dragging = ref(false)
 const shared = ref(false)
+
+// Track what was last rendered so we can show an "edited — press Run" cue in
+// manual mode without a watcher race on preset switches.
+const lastSource = ref('')
+const lastInvoke = ref('')
+const dirty = computed(
+  () =>
+    !autorun.value &&
+    (source.value !== lastSource.value || invoke.value !== lastInvoke.value),
+)
 
 const hasErrors = computed(() =>
   diagnostics.value.some((d) => d.severity === 'error'),
@@ -128,11 +141,15 @@ let seq = 0
 function scheduleRender() {
   if (!autorun.value) return
   if (timer) clearTimeout(timer)
-  timer = setTimeout(render, 400)
+  timer = setTimeout(render, 800)
 }
 
 async function render() {
   const mine = ++seq
+  // Record what this render covers, so `dirty` clears even when the post-preset
+  // watcher fires after this call.
+  lastSource.value = source.value
+  lastInvoke.value = invoke.value
   loading.value = true
   error.value = ''
   try {
@@ -360,9 +377,9 @@ onBeforeUnmount(() => {
         </div>
       </div>
       <div class="pg__right">
-        <span class="pg__timing" :class="{ live: loading }">
+        <span class="pg__timing" :class="{ live: loading, edited: dirty }">
           <span class="pg__pulse"></span>
-          {{ loading ? 'compiling' : ms ? ms + ' ms' : 'ready' }}
+          {{ loading ? 'compiling' : dirty ? 'edited · press Run' : ms ? ms + ' ms' : 'ready' }}
         </span>
         <label class="pg__toggle" :class="{ on: autorun }">
           <input type="checkbox" v-model="autorun" />
@@ -551,7 +568,9 @@ onBeforeUnmount(() => {
   font-size: 12px;
   color: var(--muted);
   min-width: 74px;
+  white-space: nowrap;
 }
+.pg__timing.edited { color: var(--accent-2); font-weight: 500; }
 .pg__pulse {
   width: 7px; height: 7px; border-radius: 50%;
   background: var(--accent);
