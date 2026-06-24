@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useData } from 'vitepress'
+import hljs from 'highlight.js/lib/core'
+import goLang from 'highlight.js/lib/languages/go'
+import xmlLang from 'highlight.js/lib/languages/xml'
+hljs.registerLanguage('go', goLang)
+hljs.registerLanguage('xml', xmlLang)
 
 // Follows the VitePress light/dark toggle (sets .dark on <html>).
 const { isDark } = useData()
@@ -112,6 +117,15 @@ const hasErrors = computed(() =>
   diagnostics.value.some((d) => d.severity === 'error'),
 )
 
+// Syntax-highlighted output for the HTML and Generated-Go tabs (read-only).
+// hljs escapes its input, so v-html-ing the result is safe.
+const htmlHi = computed(() =>
+  html.value ? hljs.highlight(html.value, { language: 'xml' }).value : '',
+)
+const goHi = computed(() =>
+  generatedGo.value ? hljs.highlight(generatedGo.value, { language: 'go' }).value : '',
+)
+
 const tabs = [
   { id: 'preview', label: 'Preview' },
   { id: 'html', label: 'HTML' },
@@ -182,6 +196,49 @@ function loadPreset() {
   invoke.value = p.invoke
   setEditorDoc(p.source)
   render()
+}
+
+// ---- format -------------------------------------------------------------
+// Formats the component via /format (same as `gsx fmt`) and replaces the editor
+// content. Returns the raw response ({formatted} or {error}).
+async function format() {
+  try {
+    const res = await fetch(`${API}/format`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gsx: source.value, invoke: invoke.value }),
+    })
+    const data = await res.json()
+    if (typeof data.formatted === 'string') setEditorDoc(data.formatted)
+    return data
+  } catch {
+    return { error: `Could not reach the format API at ${API}` }
+  }
+}
+
+// Format button: format-only, surfacing a parse/print failure as a diagnostic.
+function onFormat() {
+  format().then((d) => {
+    if (d && d.error) {
+      error.value = 'format: ' + d.error
+      diagnostics.value = []
+      activeTab.value = 'problems'
+    }
+  })
+}
+
+// Run / Cmd-Ctrl+Enter: format-on-run, then render. A format failure is left for
+// render() to surface as the precise diagnostic.
+async function formatAndRun() {
+  await format()
+  render()
+}
+
+function runShortcut(e: KeyboardEvent) {
+  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+    e.preventDefault()
+    formatAndRun()
+  }
 }
 
 // ---- shareable URL ------------------------------------------------------
@@ -262,11 +319,12 @@ onMounted(async () => {
   // A shared link overrides the default preset before the editor is created.
   loadFromHash()
 
-  const [{ EditorView, basicSetup }, { javascript }, { EditorState, Compartment }, lang, hl] =
+  const [{ EditorView, basicSetup }, { javascript }, { EditorState, Compartment, Prec }, { keymap }, lang, hl] =
     await Promise.all([
       import('codemirror'),
       import('@codemirror/lang-javascript'),
       import('@codemirror/state'),
+      import('@codemirror/view'),
       import('@codemirror/language'),
       import('@lezer/highlight'),
     ])
@@ -332,6 +390,12 @@ onMounted(async () => {
     state: EditorState.create({
       doc: source.value,
       extensions: [
+        // Cmd/Ctrl+Enter runs (higher precedence than the default keymap).
+        Prec.highest(
+          keymap.of([
+            { key: 'Mod-Enter', run: () => { formatAndRun(); return true } },
+          ]),
+        ),
         basicSetup,
         javascript({ jsx: true }),
         themeCompartment.of(buildEditorTheme(isDark.value)),
@@ -385,8 +449,9 @@ onBeforeUnmount(() => {
           <input type="checkbox" v-model="autorun" />
           <span>auto-run</span>
         </label>
+        <button class="pg__share" @click="onFormat" title="Format (gsx fmt)">Format</button>
         <button class="pg__share" @click="share">{{ shared ? 'Copied ✓' : 'Share' }}</button>
-        <button class="pg__run" @click="render">Run</button>
+        <button class="pg__run" @click="formatAndRun" title="Format &amp; Run (⌘/Ctrl+Enter)">Run</button>
       </div>
     </header>
 
@@ -404,6 +469,7 @@ onBeforeUnmount(() => {
             spellcheck="false"
             autocomplete="off"
             rows="3"
+            @keydown="runShortcut"
           ></textarea>
         </div>
       </section>
@@ -437,9 +503,9 @@ onBeforeUnmount(() => {
             title="rendered output"
           ></iframe>
 
-          <pre v-show="activeTab === 'html'" class="pg__code"><code>{{ html || '— no output —' }}</code></pre>
+          <pre v-show="activeTab === 'html'" class="pg__code hljs"><code v-html="htmlHi || '— no output —'"></code></pre>
 
-          <pre v-show="activeTab === 'go'" class="pg__code"><code>{{ generatedGo || '— no output —' }}</code></pre>
+          <pre v-show="activeTab === 'go'" class="pg__code hljs"><code v-html="goHi || '— no output —'"></code></pre>
 
           <div v-show="activeTab === 'problems'" class="pg__problems">
             <div v-if="error" class="pg__diag err">{{ error }}</div>
@@ -767,6 +833,24 @@ onBeforeUnmount(() => {
   white-space: pre;
   tab-size: 4;
 }
+/* highlight.js token colors for the HTML/Go output tabs (GitHub light/dark,
+   matching the editor palette). v-html content needs :deep. */
+.pg__code :deep(.hljs-comment) { color: #6e7781; font-style: italic; }
+.pg__code :deep(.hljs-keyword), .pg__code :deep(.hljs-literal) { color: #cf222e; }
+.pg__code :deep(.hljs-string), .pg__code :deep(.hljs-meta .hljs-string) { color: #0a3069; }
+.pg__code :deep(.hljs-number), .pg__code :deep(.hljs-built_in) { color: #0550ae; }
+.pg__code :deep(.hljs-title), .pg__code :deep(.hljs-title.function_) { color: #8250df; }
+.pg__code :deep(.hljs-type) { color: #953800; }
+.pg__code :deep(.hljs-name) { color: #116329; }
+.pg__code :deep(.hljs-attr) { color: #0550ae; }
+.pg--dark .pg__code :deep(.hljs-comment) { color: #768390; }
+.pg--dark .pg__code :deep(.hljs-keyword), .pg--dark .pg__code :deep(.hljs-literal) { color: #ff7b72; }
+.pg--dark .pg__code :deep(.hljs-string), .pg--dark .pg__code :deep(.hljs-meta .hljs-string) { color: #a5d6ff; }
+.pg--dark .pg__code :deep(.hljs-number), .pg--dark .pg__code :deep(.hljs-built_in) { color: #79c0ff; }
+.pg--dark .pg__code :deep(.hljs-title), .pg--dark .pg__code :deep(.hljs-title.function_) { color: #d2a8ff; }
+.pg--dark .pg__code :deep(.hljs-type) { color: #ffa657; }
+.pg--dark .pg__code :deep(.hljs-name) { color: #7ee787; }
+.pg--dark .pg__code :deep(.hljs-attr) { color: #79c0ff; }
 .pg__problems { position: absolute; inset: 0; overflow: auto; padding: 12px; }
 .pg__diag {
   display: grid;
