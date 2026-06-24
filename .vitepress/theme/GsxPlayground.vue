@@ -307,8 +307,14 @@ const editorEl = ref()
 let view: any
 function setEditorDoc(text: string) {
   if (!view) return
+  const cur = view.state.doc.toString()
+  if (cur === text) return // unchanged (e.g. already-formatted) — don't touch the cursor
+  // Preserve the caret offset across the full-doc replace (clamped to the new
+  // length) so format-on-run doesn't jump the cursor to the start of the file.
+  const head = Math.min(view.state.selection.main.head, text.length)
   view.dispatch({
     changes: { from: 0, to: view.state.doc.length, insert: text },
+    selection: { anchor: head },
   })
 }
 
