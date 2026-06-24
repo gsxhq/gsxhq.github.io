@@ -28,6 +28,7 @@ export default defineConfig({
             { text: 'Why gsx', link: '/guide/vision' },
             { text: 'Principles', link: '/guide/principles' },
             { text: 'Syntax', link: '/guide/syntax' },
+            { text: 'CLI', link: '/guide/cli' },
           ],
         },
       ],
