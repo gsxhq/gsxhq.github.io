@@ -38,6 +38,7 @@ jobs:
         run: npm run build
         env:
           GSX_DOCS_SRC: ${{ github.workspace }}/_gsx
+          VITE_GSX_PLAYGROUND_API: ${{ vars.GSX_PLAYGROUND_API }}
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
