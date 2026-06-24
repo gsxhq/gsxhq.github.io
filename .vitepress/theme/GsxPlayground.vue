@@ -65,7 +65,7 @@ component Comment(body string) {
 	<blockquote>{body}</blockquote>
 }
 `,
-    invoke: 'Comment(CommentProps{Body: "<script>alert(1)<\\/script>"})',
+    invoke: 'Comment(CommentProps{Body: "<img src=x onerror=alert(1)>"})',
   },
   {
     name: 'Composition',
@@ -89,7 +89,14 @@ const invoke = ref(presets[0].invoke)
 const html = ref('')
 const generatedGo = ref('')
 const diagnostics = ref<
-  { severity: string; message: string; line: number; column: number }[]
+  {
+    severity: string
+    code?: string
+    message: string
+    help?: string
+    line: number
+    column: number
+  }[]
 >([])
 const error = ref('')
 const ms = ref(0)
@@ -523,7 +530,10 @@ onBeforeUnmount(() => {
             >
               <span class="pg__sev">{{ d.severity }}</span>
               <span class="pg__loc">{{ d.line }}:{{ d.column }}</span>
-              <span class="pg__msg">{{ d.message }}</span>
+              <span class="pg__msg">
+                {{ d.message }}<span v-if="d.code" class="pg__diag-code">{{ d.code }}</span>
+                <span v-if="d.help" class="pg__diag-help">help: {{ d.help }}</span>
+              </span>
             </div>
             <div
               v-if="!error && !diagnostics.length"
@@ -882,6 +892,16 @@ onBeforeUnmount(() => {
 .pg__diag.error .pg__sev { color: var(--danger); }
 .pg__loc { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--muted); }
 .pg__msg { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; }
+.pg__diag-code {
+  margin-left: 8px;
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  font-size: 11px;
+  color: var(--muted);
+}
+.pg__diag-help { display: block; margin-top: 4px; color: var(--accent-2); }
 .pg__clean {
   color: var(--muted);
   font-family: 'IBM Plex Mono', monospace;
