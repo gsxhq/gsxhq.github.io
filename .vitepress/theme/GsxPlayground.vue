@@ -136,6 +136,7 @@ async function render() {
 }
 
 function loadPreset() {
+  if (presetIdx.value < 0) return // "Shared link" entry — keep current content
   const p = presets[presetIdx.value]
   source.value = p.source
   invoke.value = p.invoke
@@ -207,6 +208,11 @@ function loadFromHash(): boolean {
     const o = JSON.parse(b64decode(decodeURIComponent(m[1])))
     if (typeof o.s === 'string') source.value = o.s
     if (typeof o.i === 'string') invoke.value = o.i
+    // Sync the dropdown: an "Open in Playground" link carries a preset's exact
+    // source+invoke, so select it; otherwise show the "Shared link" entry (-1).
+    presetIdx.value = presets.findIndex(
+      (p) => p.source === source.value && p.invoke === invoke.value,
+    )
     return true
   } catch {
     return false
@@ -415,6 +421,7 @@ onBeforeUnmount(() => {
       <div class="pg__mid">
         <div class="pg__select">
           <select v-model="presetIdx" @change="loadPreset" aria-label="Example">
+            <option v-if="presetIdx === -1" :value="-1">Shared link</option>
             <option v-for="(p, i) in presets" :key="i" :value="i">{{ p.name }}</option>
           </select>
           <span class="pg__chev">▾</span>
