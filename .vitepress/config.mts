@@ -44,7 +44,6 @@ export default defineConfig({
       { text: 'Guide', link: '/guide/vision' },
       { text: 'Playground', link: '/playground' },
       { text: 'Examples', link: '/guide/examples' },
-      { text: 'Roadmap', link: 'https://github.com/gsxhq/gsx/blob/main/docs/ROADMAP.md' },
     ],
     sidebar: {
       '/guide/': [
