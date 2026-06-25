@@ -17,6 +17,17 @@ export default defineConfig({
         href: 'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap',
       },
     ],
+    // Favicons (served from public/).
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/gsx-favicon.svg' }],
+    ['link', { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/gsx-favicon-32.png' }],
+    ['link', { rel: 'icon', type: 'image/png', sizes: '16x16', href: '/gsx-favicon-16.png' }],
+    ['link', { rel: 'apple-touch-icon', sizes: '180x180', href: '/gsx-favicon-180.png' }],
+    // Social / Open Graph preview.
+    ['meta', { property: 'og:type', content: 'website' }],
+    ['meta', { property: 'og:title', content: 'gsx — HTML as a first-class Go value' }],
+    ['meta', { property: 'og:image', content: 'https://gsxhq.github.io/gsx-og.png' }],
+    ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+    ['meta', { name: 'twitter:image', content: 'https://gsxhq.github.io/gsx-og.png' }],
   ],
   // In CI the gsx repo is checked out into ./_gsx; exclude it (and the repo's own
   // README) so VitePress only builds index.md + the synced guide/ pages — not the
@@ -26,6 +37,9 @@ export default defineConfig({
     languageAlias: { gsx: 'jsx' },
   },
   themeConfig: {
+    // The { gsx } wordmark replaces the text title in the nav (light/dark variants).
+    logo: { light: '/gsx-logo.svg', dark: '/gsx-logo-dark.svg', alt: 'gsx' },
+    siteTitle: false,
     nav: [
       { text: 'Guide', link: '/guide/vision' },
       { text: 'Playground', link: '/playground' },

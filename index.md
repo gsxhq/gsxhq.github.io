@@ -4,6 +4,9 @@ hero:
   name: gsx
   text: HTML as a first-class Go value
   tagline: templ-style components, JSX-style markup, compiled to plain Go. A standard-library-only runtime.
+  image:
+    src: /gsx-favicon.svg
+    alt: gsx
   actions:
     - theme: brand
       text: Why gsx
@@ -28,5 +31,4 @@ features:
 > interpolation, control flow, attributes with contextual escaping, the `|>`
 > pipeline + filters, components/props/`{children}`, method components, named
 > slots, and attribute fallthrough. Still in progress: some CLI commands
-> (`vet`/`lsp`), `style` composition, and structured diagnostics. Follow the
-> [roadmap](https://github.com/gsxhq/gsx/blob/main/docs/ROADMAP.md).
+> (`vet`/`lsp`), `style` composition, and structured diagnostics.
