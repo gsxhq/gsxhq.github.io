@@ -3,3 +3,7 @@ node_modules/
 .vitepress/dist/
 # synced from gsxhq/gsx at build time
 /guide/
+
+# built in CI by the deploy workflow (Go wasm)
+/public/gsx.wasm
+/public/wasm_exec.js

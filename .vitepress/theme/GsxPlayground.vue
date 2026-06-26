@@ -11,9 +11,38 @@ hljs.registerLanguage('xml', xmlLang)
 // Follows the VitePress light/dark toggle (sets .dark on <html>).
 const { isDark } = useData()
 
-// The render API. Override at build/dev time with VITE_GSX_PLAYGROUND_API.
+// The interactive loop runs client-side: a Go-compiled WASM module (gsx repo's
+// playground/wasm) exposes gsxTransform(source) -> {files, diagnostics} and
+// gsxFormat(source). The HTML PREVIEW alone is rendered by the server's /run
+// (a real Go compiler — needed for component composition), called only on Run.
+const base = (import.meta as any).env?.BASE_URL ?? '/'
 const API =
   (import.meta as any).env?.VITE_GSX_PLAYGROUND_API ?? 'http://localhost:8088'
+
+let wasmPromise: Promise<void> | null = null
+function ensureWasm(): Promise<void> {
+  if (wasmPromise) return wasmPromise
+  wasmPromise = (async () => {
+    if (!(window as any).Go) {
+      await new Promise<void>((resolve, reject) => {
+        const s = document.createElement('script')
+        s.src = `${base}wasm_exec.js`
+        s.onload = () => resolve()
+        s.onerror = () => reject(new Error('failed to load wasm_exec.js'))
+        document.head.appendChild(s)
+      })
+    }
+    const go = new (window as any).Go()
+    const bytes = await (await fetch(`${base}gsx.wasm`)).arrayBuffer()
+    const result = await WebAssembly.instantiate(bytes, go.importObject)
+    // go.run never resolves (the module blocks); it signals readiness via gsxReady.
+    await new Promise<void>((resolve) => {
+      ;(window as any).gsxReady = () => resolve()
+      go.run(result.instance)
+    })
+  })()
+  return wasmPromise
+}
 
 // Example presets are generated from the single-source examples/*.txtar fixtures
 // (see the gsx repo internal/examplegen). The docs Examples page, this dropdown,
@@ -39,9 +68,9 @@ const diagnostics = ref<
 const error = ref('')
 const ms = ref(0)
 const loading = ref(false)
-// Off by default: each render is a real server compile (~1.5s of Cloud Run CPU),
-// so don't fire on every keystroke pause. The initial load and preset switches
-// still render (cache hits, ~free); free-form edits need an explicit Run.
+// Diagnostics + Generated Go always update live (in-browser WASM). This toggle
+// only controls the HTML PREVIEW, which is a server /run call — off by default
+// so it fires on Run, not every keystroke.
 const autorun = ref(false)
 const activeTab = ref<'preview' | 'html' | 'go' | 'problems'>('preview')
 const split = ref(50)
@@ -93,42 +122,70 @@ const srcdoc = computed(
     </style></head><body>${html.value}</body></html>`,
 )
 
-// ---- render -------------------------------------------------------------
+// ---- transform (live, in-browser) + render (preview, server) ------------
 let timer: any
 let seq = 0
+let lastFiles: any[] = []
 
+// On every edit: run the in-browser WASM transform (instant, free) to refresh
+// diagnostics and Generated Go. Optionally also refresh the server-rendered
+// preview when auto-run is on.
 function scheduleRender() {
-  if (!autorun.value) return
   if (timer) clearTimeout(timer)
-  timer = setTimeout(render, 800)
+  timer = setTimeout(async () => {
+    await liveTransform()
+    if (autorun.value) render()
+  }, 250)
 }
 
+// liveTransform runs the WASM transform only: generated Go + diagnostics. No
+// network. lastFiles is reused by render() so it doesn't re-transform.
+async function liveTransform(): Promise<boolean> {
+  await ensureWasm()
+  const data = (window as any).gsxTransform(source.value)
+  const files = (data.files ?? []) as { name: string; code: string }[]
+  lastFiles = files
+  diagnostics.value = data.diagnostics ?? []
+  generatedGo.value = files
+    .map((f) => (files.length > 1 ? `// ${f.name}\n${f.code}` : f.code))
+    .join('\n\n')
+  return !hasErrors.value
+}
+
+// render refreshes the HTML preview by compiling+running the generated Go on the
+// server (/run) — a real Go compiler, needed for component composition.
 async function render() {
   const mine = ++seq
-  // Record what this render covers, so `dirty` clears even when the post-preset
-  // watcher fires after this call.
   lastSource.value = source.value
   lastInvoke.value = invoke.value
   loading.value = true
   error.value = ''
   try {
-    const res = await fetch(`${API}/render`, {
+    const ok = await liveTransform()
+    if (mine !== seq) return
+    if (!ok) {
+      html.value = ''
+      activeTab.value = 'problems'
+      return
+    }
+    const res = await fetch(`${API}/run`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ gsx: source.value, invoke: invoke.value }),
+      body: JSON.stringify({ files: lastFiles, invoke: invoke.value }),
     })
     if (mine !== seq) return
     const data = await res.json()
     html.value = data.html ?? ''
-    generatedGo.value = data.generatedGo ?? ''
-    diagnostics.value = data.diagnostics ?? []
-    error.value = data.error ?? ''
     ms.value = data.ms ?? 0
-    if (hasErrors.value || error.value) activeTab.value = 'problems'
-    else if (activeTab.value === 'problems') activeTab.value = 'preview'
+    if (data.error) {
+      error.value = data.error
+      activeTab.value = 'problems'
+    } else if (activeTab.value === 'problems') {
+      activeTab.value = 'preview'
+    }
   } catch {
     if (mine !== seq) return
-    error.value = `Could not reach the render API at ${API} — is the playground server running?`
+    error.value = `Could not reach the render service at ${API} — is the playground server running?`
     activeTab.value = 'problems'
   } finally {
     if (mine === seq) loading.value = false
@@ -149,16 +206,12 @@ function loadPreset() {
 // content. Returns the raw response ({formatted} or {error}).
 async function format() {
   try {
-    const res = await fetch(`${API}/format`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ gsx: source.value, invoke: invoke.value }),
-    })
-    const data = await res.json()
+    await ensureWasm()
+    const data = (window as any).gsxFormat(source.value)
     if (typeof data.formatted === 'string') setEditorDoc(data.formatted)
     return data
-  } catch {
-    return { error: `Could not reach the format API at ${API}` }
+  } catch (e) {
+    return { error: `format: ${e}` }
   }
 }
 
