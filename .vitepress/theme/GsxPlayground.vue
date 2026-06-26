@@ -33,7 +33,10 @@ function ensureWasm(): Promise<void> {
       })
     }
     const go = new (window as any).Go()
-    const bytes = await (await fetch(`${base}gsx.wasm`)).arrayBuffer()
+    // Content-hashed at build time (VITE_GSX_WASM=gsx.<hash>.wasm) so a new
+    // version is a new URL — cache invalidation across deploys just works.
+    const wasmFile = (import.meta as any).env?.VITE_GSX_WASM ?? 'gsx.wasm'
+    const bytes = await (await fetch(`${base}${wasmFile}`)).arrayBuffer()
     const result = await WebAssembly.instantiate(bytes, go.importObject)
     // go.run never resolves (the module blocks); it signals readiness via gsxReady.
     await new Promise<void>((resolve) => {

@@ -7,3 +7,4 @@ node_modules/
 # built in CI by the deploy workflow (Go wasm)
 /public/gsx.wasm
 /public/wasm_exec.js
+/public/gsx.*.wasm

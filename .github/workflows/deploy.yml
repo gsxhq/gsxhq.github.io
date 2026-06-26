@@ -37,9 +37,15 @@ jobs:
       - name: Build playground WASM (client-side transform + format)
         run: |
           cd _gsx
-          GOOS=js GOARCH=wasm go build -o "$GITHUB_WORKSPACE/public/gsx.wasm" ./playground/wasm
+          GOOS=js GOARCH=wasm go build -o /tmp/gsx.wasm ./playground/wasm
+          HASH=$(sha256sum /tmp/gsx.wasm | cut -c1-12)
+          mkdir -p "$GITHUB_WORKSPACE/public"
+          cp /tmp/gsx.wasm "$GITHUB_WORKSPACE/public/gsx.$HASH.wasm"
           cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" "$GITHUB_WORKSPACE/public/wasm_exec.js"
-          ls -la "$GITHUB_WORKSPACE/public/gsx.wasm"
+          # Bake the hashed filename into the Vite build so the (hashed) bundle
+          # references the (hashed) wasm — cache-busting across deploys.
+          echo "VITE_GSX_WASM=gsx.$HASH.wasm" >> "$GITHUB_ENV"
+          ls -la "$GITHUB_WORKSPACE/public/gsx.$HASH.wasm"
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Install dependencies
