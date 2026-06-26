@@ -1,0 +1,307 @@
+{
+  "scopeName": "source.gsx",
+  "name": "gsx",
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#component"
+    },
+    {
+      "include": "source.go"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.gsx",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.block.gsx",
+          "begin": "/\\*",
+          "end": "\\*/"
+        },
+        {
+          "name": "comment.block.html.gsx",
+          "begin": "<!--",
+          "end": "-->"
+        }
+      ]
+    },
+    "component": {
+      "name": "meta.component.gsx",
+      "begin": "^(component)\\s+(?:\\(([^)]*)\\)\\s+)?([A-Za-z_][A-Za-z0-9_]*)\\s*\\(([^{]*)\\)\\s*(\\{)\\s*$",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.control.component.gsx"
+        },
+        "2": {
+          "name": "meta.embedded.line.go.gsx",
+          "patterns": [
+            {
+              "include": "source.go"
+            }
+          ]
+        },
+        "3": {
+          "name": "entity.name.function.gsx"
+        },
+        "4": {
+          "name": "meta.embedded.line.go.gsx",
+          "patterns": [
+            {
+              "include": "source.go"
+            }
+          ]
+        },
+        "5": {
+          "name": "punctuation.section.block.begin.gsx"
+        }
+      },
+      "end": "^(\\})\\s*$",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.section.block.end.gsx"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#markup"
+        }
+      ]
+    },
+    "markup": {
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#go-block"
+        },
+        {
+          "include": "#script-element"
+        },
+        {
+          "include": "#style-element"
+        },
+        {
+          "include": "#doctype"
+        },
+        {
+          "include": "#fragment"
+        },
+        {
+          "include": "#component-tag"
+        },
+        {
+          "include": "#element-tag"
+        },
+        {
+          "include": "#interp"
+        }
+      ]
+    },
+    "go-block": {
+      "name": "meta.embedded.block.go.gsx",
+      "begin": "\\{\\{",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.section.embedded.begin.gsx"
+        }
+      },
+      "end": "\\}\\}",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.section.embedded.end.gsx"
+        }
+      },
+      "contentName": "source.go",
+      "patterns": [
+        {
+          "include": "source.go"
+        }
+      ]
+    },
+    "interp": {
+      "name": "meta.embedded.block.go.gsx",
+      "begin": "(@?\\{)",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.section.embedded.begin.gsx"
+        }
+      },
+      "end": "\\}",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.section.embedded.end.gsx"
+        }
+      },
+      "contentName": "source.go",
+      "patterns": [
+        {
+          "include": "source.go"
+        }
+      ]
+    },
+    "doctype": {
+      "name": "meta.tag.doctype.gsx",
+      "match": "(?i)(<!)(DOCTYPE)([^>]*)(>)",
+      "captures": {
+        "1": {
+          "name": "punctuation.definition.tag.gsx"
+        },
+        "2": {
+          "name": "keyword.other.doctype.gsx"
+        },
+        "4": {
+          "name": "punctuation.definition.tag.gsx"
+        }
+      }
+    },
+    "fragment": {
+      "name": "meta.tag.fragment.gsx",
+      "match": "(</?>)",
+      "captures": {
+        "1": {
+          "name": "punctuation.definition.tag.gsx"
+        }
+      }
+    },
+    "component-tag": {
+      "name": "meta.tag.component.gsx",
+      "begin": "(</?)((?:[a-z][a-zA-Z0-9]*\\.)?[A-Z][A-Za-z0-9.]*)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.gsx"
+        },
+        "2": {
+          "name": "entity.name.type.component.gsx"
+        }
+      },
+      "end": "(/?>)",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.gsx"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#attribute"
+        }
+      ]
+    },
+    "element-tag": {
+      "name": "meta.tag.element.gsx",
+      "begin": "(</?)([a-z][a-z0-9-]*)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.gsx"
+        },
+        "2": {
+          "name": "entity.name.tag.gsx"
+        }
+      },
+      "end": "(/?>)",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.gsx"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#attribute"
+        }
+      ]
+    },
+    "attribute": {
+      "patterns": [
+        {
+          "include": "#go-block"
+        },
+        {
+          "include": "#interp"
+        },
+        {
+          "name": "string.quoted.double.gsx",
+          "begin": "\"",
+          "end": "\""
+        },
+        {
+          "name": "keyword.operator.assignment.gsx",
+          "match": "="
+        },
+        {
+          "name": "entity.other.attribute-name.gsx",
+          "match": "[A-Za-z_@:][A-Za-z0-9_.:-]*"
+        }
+      ]
+    },
+    "script-element": {
+      "begin": "(<)(script)\\b([^>]*)(>)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.gsx"
+        },
+        "2": {
+          "name": "entity.name.tag.gsx"
+        },
+        "4": {
+          "name": "punctuation.definition.tag.gsx"
+        }
+      },
+      "end": "(</)(script)\\s*(>)",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.gsx"
+        },
+        "2": {
+          "name": "entity.name.tag.gsx"
+        },
+        "3": {
+          "name": "punctuation.definition.tag.gsx"
+        }
+      },
+      "contentName": "meta.embedded.block.js.gsx",
+      "patterns": [
+        {
+          "include": "source.js"
+        }
+      ]
+    },
+    "style-element": {
+      "begin": "(<)(style)\\b([^>]*)(>)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.gsx"
+        },
+        "2": {
+          "name": "entity.name.tag.gsx"
+        },
+        "4": {
+          "name": "punctuation.definition.tag.gsx"
+        }
+      },
+      "end": "(</)(style)\\s*(>)",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.gsx"
+        },
+        "2": {
+          "name": "entity.name.tag.gsx"
+        },
+        "3": {
+          "name": "punctuation.definition.tag.gsx"
+        }
+      },
+      "contentName": "meta.embedded.block.css.gsx",
+      "patterns": [
+        {
+          "include": "source.css"
+        }
+      ]
+    }
+  }
+}

@@ -1,4 +1,10 @@
 import { defineConfig } from 'vitepress'
+import gsxGrammar from './grammars/gsx.tmLanguage.json'
+// gsx's grammar embeds Go/JS/CSS; VitePress only lazy-loads languages referenced
+// by a fence, so the embedded bases must be registered explicitly.
+import goLang from '@shikijs/langs/go'
+import jsLang from '@shikijs/langs/javascript'
+import cssLang from '@shikijs/langs/css'
 
 // Org Pages site served at the root: https://gsxhq.github.io/ (repo is named
 // gsxhq.github.io), so base is '/'.
@@ -34,7 +40,18 @@ export default defineConfig({
   // internal specs/plans/skill, which contain `{ }`/`{{ }}` that break Vue parsing.
   srcExclude: ['_gsx/**', 'README.md'],
   markdown: {
-    languageAlias: { gsx: 'jsx' },
+    // Highlight ```gsx fences with the real gsx TextMate grammar (synced from
+    // the vscode-gsx extension), not a jsx approximation. The grammar embeds
+    // Go/JS/CSS, so those bundled languages must load alongside it.
+    languages: [
+      ...goLang,
+      ...jsLang,
+      ...cssLang,
+      {
+        ...gsxGrammar,
+        embeddedLangs: ['go', 'javascript', 'css'],
+      },
+    ],
   },
   themeConfig: {
     // The { gsx } wordmark replaces the text title in the nav (light/dark variants).

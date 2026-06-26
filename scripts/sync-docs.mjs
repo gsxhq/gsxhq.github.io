@@ -59,3 +59,25 @@ function syncPresets() {
   }
 }
 syncPresets()
+
+// Sync the gsx TextMate grammar from the vscode-gsx extension (its canonical
+// owner) so the site's Shiki highlighting stays identical to the editor's. The
+// committed copy under .vitepress/grammars is the fallback when the sibling repo
+// isn't checked out (e.g. CI building from a docs-only checkout).
+function syncGrammar() {
+  let grammarSrc
+  if (process.env.GSX_GRAMMAR_SRC) {
+    grammarSrc = resolve(process.env.GSX_GRAMMAR_SRC)
+  } else {
+    const sibling = resolve('..', 'vscode-gsx', 'syntaxes', 'gsx.tmLanguage.json')
+    if (existsSync(sibling)) grammarSrc = sibling
+  }
+  const dest = resolve('.vitepress/grammars/gsx.tmLanguage.json')
+  if (grammarSrc && existsSync(grammarSrc)) {
+    cpSync(grammarSrc, dest)
+    console.log(`copied grammar: ${grammarSrc} -> ${dest}`)
+  } else {
+    console.log('grammar: no vscode-gsx source; keeping committed gsx.tmLanguage.json')
+  }
+}
+syncGrammar()
