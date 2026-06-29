@@ -38,7 +38,7 @@ export default defineConfig({
   // In CI the gsx repo is checked out into ./_gsx; exclude it (and the repo's own
   // README) so VitePress only builds index.md + the synced guide/ pages — not the
   // internal specs/plans/skill, which contain `{ }`/`{{ }}` that break Vue parsing.
-  srcExclude: ['_gsx/**', 'README.md'],
+  srcExclude: ['_gsx/**', 'README.md', 'guide/**/_generated/**'],
   markdown: {
     // Highlight ```gsx fences with the real gsx TextMate grammar (synced from
     // the vscode-gsx extension), not a jsx approximation. The grammar embeds
@@ -60,7 +60,6 @@ export default defineConfig({
     nav: [
       { text: 'Guide', link: '/guide/vision' },
       { text: 'Playground', link: '/playground' },
-      { text: 'Examples', link: '/guide/examples' },
     ],
     sidebar: {
       '/guide/': [
@@ -75,7 +74,31 @@ export default defineConfig({
             { text: 'Extensions', link: '/guide/extensions' },
             { text: 'CLI', link: '/guide/cli' },
             { text: 'Editor support', link: '/guide/editor' },
-            { text: 'Examples', link: '/guide/examples' },
+          ],
+        },
+        {
+          text: 'Syntax and usage',
+          items: [
+            { text: 'Basic syntax', link: '/guide/syntax/basic-syntax' },
+            { text: 'Raw Go', link: '/guide/syntax/raw-go' },
+            { text: 'Elements', link: '/guide/syntax/elements' },
+            { text: 'Comments', link: '/guide/syntax/comments' },
+            { text: 'Fragments', link: '/guide/syntax/fragments' },
+            { text: 'Interpolation & expressions', link: '/guide/syntax/interpolation' },
+            { text: 'Attributes', link: '/guide/syntax/attributes' },
+            { text: 'Control flow', link: '/guide/syntax/control-flow' },
+            { text: 'Components & composition', link: '/guide/syntax/composition' },
+            { text: 'Props model', link: '/guide/syntax/props' },
+            { text: 'Styling', link: '/guide/syntax/styling' },
+            { text: 'JavaScript & scripts', link: '/guide/syntax/javascript' },
+            { text: 'Pipelines & filters', link: '/guide/syntax/pipelines' },
+            { text: 'Rendering raw HTML', link: '/guide/syntax/raw-html' },
+            { text: 'Security & escaping', link: '/guide/syntax/escaping' },
+            { text: 'Context', link: '/guide/syntax/context' },
+            { text: 'Standard functions', link: '/guide/syntax/std-functions' },
+            { text: 'Interop', link: '/guide/syntax/interop' },
+            { text: 'Render once', link: '/guide/syntax/render-once' },
+            { text: 'Forms', link: '/guide/syntax/forms' },
           ],
         },
       ],
