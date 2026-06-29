@@ -69,6 +69,7 @@ export default defineConfig({
           items: [
             { text: 'Why gsx', link: '/guide/vision' },
             { text: 'Principles', link: '/guide/principles' },
+            { text: 'Performance', link: '/guide/performance' },
             { text: 'Syntax', link: '/guide/syntax' },
             { text: 'Configuration', link: '/guide/config' },
             { text: 'Extensions', link: '/guide/extensions' },
