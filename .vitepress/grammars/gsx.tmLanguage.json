@@ -222,6 +222,54 @@
           "include": "#go-block"
         },
         {
+          "name": "meta.attribute.class-value.gsx",
+          "begin": "(class)\\s*=\\s*(\\{)",
+          "beginCaptures": {
+            "1": {
+              "name": "entity.other.attribute-name.class.gsx"
+            },
+            "2": {
+              "name": "punctuation.section.embedded.begin.gsx"
+            }
+          },
+          "end": "\\}",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.section.embedded.end.gsx"
+            }
+          },
+          "contentName": "meta.embedded.block.go.gsx",
+          "patterns": [
+            {
+              "include": "source.go"
+            }
+          ]
+        },
+        {
+          "name": "meta.attribute.style-value.gsx",
+          "begin": "(style)\\s*=\\s*(\\{)",
+          "beginCaptures": {
+            "1": {
+              "name": "entity.other.attribute-name.gsx"
+            },
+            "2": {
+              "name": "punctuation.section.embedded.begin.gsx"
+            }
+          },
+          "end": "\\}",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.section.embedded.end.gsx"
+            }
+          },
+          "contentName": "meta.embedded.block.go.gsx",
+          "patterns": [
+            {
+              "include": "source.go"
+            }
+          ]
+        },
+        {
           "include": "#interp"
         },
         {

@@ -58,7 +58,7 @@ export default defineConfig({
     logo: { light: '/gsx-logo.svg', dark: '/gsx-logo-dark.svg', alt: 'gsx' },
     siteTitle: false,
     nav: [
-      { text: 'Guide', link: '/guide/vision' },
+      { text: 'Guide', link: '/guide/getting-started' },
       { text: 'Playground', link: '/playground' },
     ],
     sidebar: {
@@ -66,6 +66,7 @@ export default defineConfig({
         {
           text: 'Guide',
           items: [
+            { text: 'Getting started', link: '/guide/getting-started' },
             { text: 'Why gsx', link: '/guide/vision' },
             { text: 'Principles', link: '/guide/principles' },
             { text: 'Performance', link: '/guide/performance' },
