@@ -60,7 +60,7 @@ export default defineConfig({
     nav: [
       { text: 'Start', link: '/guide/getting-started' },
       { text: 'Learn', link: '/guide/learn' },
-      { text: 'Reference', link: '/guide/syntax' },
+      { text: 'Reference', link: '/guide/syntax', activeMatch: '^/guide/syntax' },
       { text: 'Playground', link: '/playground' },
     ],
     sidebar: {
