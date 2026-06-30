@@ -12,11 +12,11 @@ hero:
       text: Get started
       link: /guide/getting-started
     - theme: alt
-      text: Why gsx
-      link: /guide/vision
+      text: Learn gsx
+      link: /guide/learn
     - theme: alt
-      text: GitHub
-      link: https://github.com/gsxhq/gsx
+      text: Playground
+      link: /playground
 features:
   - title: Type-safe by construction
     details: Components lower to plain Go the compiler checks. Props are generated structs — gsx owns the field names, so there is no symbol-resolver guesswork.
@@ -30,3 +30,5 @@ features:
 > Vite application, and `npm run dev` starts the warm generation, server rebuild,
 > browser error, and reload loop through `gsx dev`. The language and APIs are
 > usable but may still change before a stable release.
+
+See [Status](/guide/status) for what ships today and what remains deferred.

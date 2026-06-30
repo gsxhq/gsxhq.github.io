@@ -58,28 +58,27 @@ export default defineConfig({
     logo: { light: '/gsx-logo.svg', dark: '/gsx-logo-dark.svg', alt: 'gsx' },
     siteTitle: false,
     nav: [
-      { text: 'Guide', link: '/guide/getting-started' },
+      { text: 'Start', link: '/guide/getting-started' },
+      { text: 'Learn', link: '/guide/learn' },
+      { text: 'Reference', link: '/guide/syntax' },
       { text: 'Playground', link: '/playground' },
     ],
     sidebar: {
       '/guide/': [
         {
-          text: 'Guide',
+          text: 'Start',
           items: [
             { text: 'Getting started', link: '/guide/getting-started' },
+            { text: 'Learn gsx', link: '/guide/learn' },
             { text: 'Why gsx', link: '/guide/vision' },
             { text: 'Principles', link: '/guide/principles' },
-            { text: 'Performance', link: '/guide/performance' },
-            { text: 'Syntax', link: '/guide/syntax' },
-            { text: 'Configuration', link: '/guide/config' },
-            { text: 'Extensions', link: '/guide/extensions' },
-            { text: 'CLI', link: '/guide/cli' },
-            { text: 'Editor support', link: '/guide/editor' },
+            { text: 'Status', link: '/guide/status' },
           ],
         },
         {
-          text: 'Syntax and usage',
+          text: 'Reference',
           items: [
+            { text: 'Syntax reference', link: '/guide/syntax' },
             { text: 'Basic syntax', link: '/guide/syntax/basic-syntax' },
             { text: 'Raw Go', link: '/guide/syntax/raw-go' },
             { text: 'Elements', link: '/guide/syntax/elements' },
@@ -96,10 +95,26 @@ export default defineConfig({
             { text: 'Rendering raw HTML', link: '/guide/syntax/raw-html' },
             { text: 'Security & escaping', link: '/guide/syntax/escaping' },
             { text: 'Context', link: '/guide/syntax/context' },
-            { text: 'Standard functions', link: '/guide/syntax/std-functions' },
+            { text: 'Runtime helpers', link: '/guide/syntax/std-functions' },
+            { text: 'Forms', link: '/guide/syntax/forms' },
+          ],
+        },
+        {
+          text: 'Tooling',
+          items: [
+            { text: 'CLI', link: '/guide/cli' },
+            { text: 'Configuration', link: '/guide/config' },
+            { text: 'Extensions', link: '/guide/extensions' },
+            { text: 'Editor support', link: '/guide/editor' },
+            { text: 'Performance', link: '/guide/performance' },
+          ],
+        },
+        {
+          text: 'Interop and Gaps',
+          items: [
+            { text: 'Comparisons', link: '/guide/comparisons' },
             { text: 'Interop', link: '/guide/syntax/interop' },
             { text: 'Render once', link: '/guide/syntax/render-once' },
-            { text: 'Forms', link: '/guide/syntax/forms' },
           ],
         },
       ],
