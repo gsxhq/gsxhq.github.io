@@ -17,10 +17,15 @@ shallow `git clone`.
 
 ```bash
 npm install
-npm run dev      # symlinks ../gsx/docs/guide for live reload, then serves
+npm run dev      # syncs ../gsx/docs/guide, builds WASM, then starts both servers
 ```
 
-Edits to `../gsx/docs/guide/*.md` hot-reload in the dev server.
+After editing `../gsx/docs/guide/*.md`, restart `npm run dev` or run `npm run sync`
+to refresh the copied guide pages.
+
+`npm run dev` also starts the sibling playground backend from
+`../gsx/playground/server` on `http://localhost:8088`, matching the frontend's
+local API URL.
 
 ## Build
 

@@ -30,5 +30,3 @@ features:
 > Vite application, and `npm run dev` starts the warm generation, server rebuild,
 > browser error, and reload loop through `gsx dev`. The language and APIs are
 > usable but may still change before a stable release.
-
-See [Status](/guide/status) for what ships today and what remains deferred.

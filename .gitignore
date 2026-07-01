@@ -1,8 +1,8 @@
 node_modules/
 .vitepress/cache/
 .vitepress/dist/
-# synced from gsxhq/gsx at build time
-/guide/
+# synced from gsxhq/gsx at build/dev time
+/guide
 
 # built in CI by the deploy workflow (Go wasm)
 /public/gsx.wasm

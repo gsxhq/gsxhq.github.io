@@ -72,7 +72,6 @@ export default defineConfig({
             { text: 'Learn gsx', link: '/guide/learn' },
             { text: 'Why gsx', link: '/guide/vision' },
             { text: 'Principles', link: '/guide/principles' },
-            { text: 'Status', link: '/guide/status' },
           ],
         },
         {

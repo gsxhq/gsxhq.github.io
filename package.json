@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "sync": "node scripts/sync-docs.mjs",
-    "predev": "node scripts/sync-docs.mjs --link",
-    "dev": "vitepress dev",
-    "prebuild": "node scripts/sync-docs.mjs",
+    "wasm": "node scripts/build-playground-wasm.mjs",
+    "dev": "node scripts/dev.mjs",
+    "prebuild": "node scripts/sync-docs.mjs && node scripts/build-playground-wasm.mjs",
     "build": "vitepress build",
     "preview": "vitepress preview"
   },
