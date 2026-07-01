@@ -58,21 +58,29 @@ const presetIdx = ref(0)
 const source = ref(presets[0].source)
 const invoke = ref(presets[0].invoke)
 
+type PlaygroundDiagnostic = {
+  severity: string
+  code?: string
+  message: string
+  help?: string
+  source?: string
+  file?: string
+  line?: number
+  column?: number
+  start?: { file?: string; line: number; col?: number; column?: number }
+  end?: { file?: string; line: number; col?: number; column?: number }
+  range?: {
+    start?: { file?: string; line: number; col?: number; column?: number }
+    end?: { file?: string; line: number; col?: number; column?: number }
+  }
+}
+
 const html = ref('')
 const generatedGo = ref('')
-const diagnostics = ref<
-  {
-    severity: string
-    code?: string
-    message: string
-    help?: string
-    line: number
-    column: number
-  }[]
->([])
+const diagnostics = ref<PlaygroundDiagnostic[]>([])
 const error = ref('')
 const ms = ref(0)
-const loading = ref(false)
+const rendering = ref(false)
 // Diagnostics + Generated Go always update live (in-browser WASM). This toggle
 // only controls the HTML PREVIEW, which is a server /run call — off by default
 // so it fires on Run, not every keystroke.
@@ -138,19 +146,26 @@ let lastFiles: any[] = []
 function scheduleRender() {
   if (timer) clearTimeout(timer)
   timer = setTimeout(async () => {
-    await liveTransform()
-    if (autorun.value) render()
+    const ok = await liveTransform()
+    if (!autorun.value) return
+    if (!ok) {
+      html.value = ''
+      activeTab.value = 'problems'
+      return
+    }
+    render({ transform: false })
   }, 250)
 }
 
 // liveTransform runs the WASM transform only: generated Go + diagnostics. No
-// network. lastFiles is reused by render() so it doesn't re-transform.
+// network. Autorun reuses lastFiles so it doesn't transform twice per edit.
 async function liveTransform(): Promise<boolean> {
   await ensureWasm()
   const data = (window as any).gsxTransform(source.value)
   const files = (data.files ?? []) as { name: string; code: string }[]
   lastFiles = files
   diagnostics.value = data.diagnostics ?? []
+  setEditorDiagnostics()
   generatedGo.value = files
     .map((f) => (files.length > 1 ? `// ${f.name}\n${f.code}` : f.code))
     .join('\n\n')
@@ -159,20 +174,21 @@ async function liveTransform(): Promise<boolean> {
 
 // render refreshes the HTML preview by compiling+running the generated Go on the
 // server (/run) — a real Go compiler, needed for component composition.
-async function render() {
+async function render(opts: { transform?: boolean } = {}) {
   const mine = ++seq
   lastSource.value = source.value
   lastInvoke.value = invoke.value
-  loading.value = true
+  rendering.value = false
   error.value = ''
   try {
-    const ok = await liveTransform()
+    const ok = opts.transform === false ? !hasErrors.value : await liveTransform()
     if (mine !== seq) return
     if (!ok) {
       html.value = ''
       activeTab.value = 'problems'
       return
     }
+    rendering.value = true
     const res = await fetch(`${API}/run`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -193,7 +209,7 @@ async function render() {
     error.value = `Could not reach the render service at ${API} — is the playground server running?`
     activeTab.value = 'problems'
   } finally {
-    if (mine === seq) loading.value = false
+    if (mine === seq) rendering.value = false
   }
 }
 
@@ -335,22 +351,192 @@ function setEditorDoc(text: string) {
 
 let themeCompartment: any
 let buildEditorTheme: (dark: boolean) => any[]
+let setDiagnostics: any
+
+function diagnosticStart(d: PlaygroundDiagnostic) {
+  const start = d.range?.start ?? d.start
+  return {
+    file: start?.file ?? d.file,
+    line: start?.line ?? d.line ?? 1,
+    column: start?.col ?? start?.column ?? d.column ?? 1,
+  }
+}
+
+function diagnosticEnd(d: PlaygroundDiagnostic) {
+  const start = d.range?.start ?? d.start
+  const end = d.range?.end ?? d.end
+  return {
+    file: end?.file ?? start?.file ?? d.file,
+    line: end?.line ?? start?.line ?? d.line ?? 1,
+    column: end?.col ?? end?.column,
+  }
+}
+
+function diagnosticLocation(d: PlaygroundDiagnostic) {
+  const range = editorRangeForDiagnostic(d)
+  if (range && view) {
+    const line = view.state.doc.lineAt(range.from)
+    return `${line.number}:${range.from - line.from + 1}`
+  }
+  const start = diagnosticStart(d)
+  return `${start.line}:${start.column}`
+}
+
+function fileLineOffset(file?: string) {
+  if (!file) return 0
+  const target = file.split('/').pop()
+  const marker = /^--\s+(.+?)\s+--\s*$/
+  const lines = source.value.split('\n')
+  for (let i = 0; i < lines.length; i++) {
+    const m = lines[i].match(marker)
+    if (m && (m[1] === file || m[1] === target)) return i + 1
+  }
+  return 0
+}
+
+function editorRangeForDiagnostic(d: PlaygroundDiagnostic) {
+  if (!view) return null
+  const start = diagnosticStart(d)
+  const end = diagnosticEnd(d)
+  const offset = fileLineOffset(start.file)
+  const lineNo = Math.max(1, offset + start.line)
+  if (lineNo > view.state.doc.lines) return null
+
+  const line = view.state.doc.line(lineNo)
+  const from = Math.min(line.to, line.from + Math.max(0, start.column - 1))
+  let to = Math.min(line.to, from + 1)
+  const endLineNo = Math.max(1, offset + end.line)
+  if (end.column && endLineNo <= view.state.doc.lines) {
+    const endLine = view.state.doc.line(endLineNo)
+    to = Math.max(from, Math.min(endLine.to, endLine.from + Math.max(0, end.column - 1)))
+  }
+  if (to <= from + 1) {
+    const token = identifierRangeAt(line.text, from - line.from)
+    if (token) {
+      return { from: line.from + token.from, to: line.from + token.to }
+    }
+  }
+  return { from, to: to > from ? to : Math.min(line.to, from + 1) }
+}
+
+function identifierRangeAt(text: string, index: number) {
+  const isIdent = (ch: string) => /[A-Za-z0-9_]/.test(ch)
+  if (!isIdent(text[index] ?? '')) return null
+
+  let from = index
+  while (from > 0 && isIdent(text[from - 1])) from--
+  let to = index + 1
+  while (to < text.length && isIdent(text[to])) to++
+  return { from, to }
+}
+
+function renderDiagnosticMessage(d: PlaygroundDiagnostic) {
+  const wrap = document.createElement('div')
+  const msg = document.createElement('div')
+  msg.textContent = d.message
+  wrap.appendChild(msg)
+  if (d.source || d.code) {
+    const meta = document.createElement('div')
+    meta.className = 'pg__cm-diag-meta'
+    meta.textContent = [d.source, d.code].filter(Boolean).join(' · ')
+    wrap.appendChild(meta)
+  }
+  if (d.help) {
+    const help = document.createElement('div')
+    help.className = 'pg__cm-diag-help'
+    help.textContent = `help: ${d.help}`
+    wrap.appendChild(help)
+  }
+  return wrap
+}
+
+function setEditorDiagnostics() {
+  if (!view || !setDiagnostics) return
+  const cmDiagnostics = diagnostics.value.flatMap((d) => {
+    const range = editorRangeForDiagnostic(d)
+    if (!range) return []
+    const severity =
+      d.severity === 'warning' ? 'warning' : d.severity === 'info' ? 'info' : 'error'
+    return [{
+      ...range,
+      severity,
+      source: [d.source, d.code].filter(Boolean).join(': ') || undefined,
+      message: d.message,
+      renderMessage: () => renderDiagnosticMessage(d),
+    }]
+  })
+  view.dispatch(setDiagnostics(view.state, cmDiagnostics))
+}
+
+function focusDiagnostic(d: PlaygroundDiagnostic) {
+  const range = editorRangeForDiagnostic(d)
+  if (!view || !range) return
+  view.dispatch({
+    selection: { anchor: range.from, head: range.to },
+    scrollIntoView: true,
+  })
+  view.focus()
+}
 
 onMounted(async () => {
   // A shared link overrides the default preset before the editor is created.
   loadFromHash()
 
-  const [{ EditorView, basicSetup }, { javascript }, { EditorState, Compartment, Prec, RangeSetBuilder }, { keymap, Decoration, ViewPlugin }, lang, hl] =
+  const [{ EditorView, basicSetup }, { EditorState, Compartment, Prec, RangeSetBuilder }, { keymap, Decoration, ViewPlugin }, lang, lint, hl] =
     await Promise.all([
       import('codemirror'),
-      import('@codemirror/lang-javascript'),
       import('@codemirror/state'),
       import('@codemirror/view'),
       import('@codemirror/language'),
+      import('@codemirror/lint'),
       import('@lezer/highlight'),
     ])
-  const { HighlightStyle, syntaxHighlighting } = lang as any
+  const { HighlightStyle, StreamLanguage, syntaxHighlighting } = lang as any
+  const { lintGutter, lintKeymap, setDiagnostics: setCodeMirrorDiagnostics } = lint as any
   const { tags: t } = hl as any
+  setDiagnostics = setCodeMirrorDiagnostics
+
+  const gsxLanguage = StreamLanguage.define({
+    startState: () => ({ blockComment: false }),
+    token(stream: any, state: any) {
+      if (state.blockComment) {
+        if (stream.skipTo('*/')) {
+          stream.next()
+          stream.next()
+          state.blockComment = false
+        } else {
+          stream.skipToEnd()
+        }
+        return 'comment'
+      }
+      if (stream.sol() && stream.match(/^--\s+\S.+\s+--\s*$/)) return 'meta'
+      if (stream.eatSpace()) return null
+      if (stream.match('//')) {
+        stream.skipToEnd()
+        return 'comment'
+      }
+      if (stream.match('/*')) {
+        state.blockComment = true
+        return 'comment'
+      }
+      if (stream.match(/<\/?[A-Za-z][\w.:-]*/)) return 'tagName'
+      if (stream.match(/"(?:[^"\\]|\\.)*"?/)) return 'string'
+      if (stream.match(/`[^`]*`?/)) return 'string'
+      if (stream.match(/'(?:[^'\\]|\\.)*'?/)) return 'string'
+      if (stream.match(/\b\d+(?:\.\d+)?\b/)) return 'number'
+      if (stream.match(/\b(?:package|import|component|func|type|struct|interface|if|else|for|range|switch|case|default|return|var|const|true|false|nil|ctx|children|attrs)\b/)) return 'keyword'
+      if (stream.match(/\b[A-Za-z_][\w-]*(?=\s*=)/)) return 'attributeName'
+      if (stream.match(/\b[A-Z][\w]*\b/)) return 'typeName'
+      if (stream.match(/\b[A-Za-z_][\w]*(?=\s*\()/)) return 'function(variableName)'
+      if (stream.match(/\|>|:=|==|!=|<=|>=|&&|\|\||[-+*/%=<>!&|.]+/)) return 'operator'
+      if (stream.match(/[{}()[\],;:]/)) return 'punctuation'
+      stream.next()
+      return null
+    },
+    languageData: {
+      commentTokens: { line: '//', block: { open: '/*', close: '*/' } },
+    },
+  })
 
   // Highlight Go-Playground-style `-- file.gsx --` separator lines so multi-file
   // sources read as dividers, not code.
@@ -445,8 +631,10 @@ onMounted(async () => {
             { key: 'Mod-Enter', run: () => { formatAndRun(); return true } },
           ]),
         ),
+        keymap.of(lintKeymap),
         basicSetup,
-        javascript({ jsx: true }),
+        gsxLanguage,
+        lintGutter(),
         separatorPlugin,
         themeCompartment.of(buildEditorTheme(isDark.value)),
         EditorView.lineWrapping,
@@ -458,6 +646,7 @@ onMounted(async () => {
       ],
     }),
   })
+  setEditorDiagnostics()
 
   render()
 })
@@ -492,10 +681,10 @@ onBeforeUnmount(() => {
         </div>
       </div>
       <div class="pg__right">
-        <span class="pg__timing" :class="{ live: loading, edited: dirty }">
-          <span v-if="loading" class="pg__spinner pg__spinner--sm"></span>
+        <span class="pg__timing" :class="{ live: rendering, edited: dirty }">
+          <span v-if="rendering" class="pg__spinner pg__spinner--sm"></span>
           <span v-else class="pg__pulse"></span>
-          {{ loading ? 'compiling' : dirty ? 'edited · press Run' : ms ? ms + ' ms' : 'ready' }}
+          {{ rendering ? 'compiling' : dirty ? 'edited · press Run' : ms ? ms + ' ms' : 'ready' }}
         </span>
         <label class="pg__toggle" :class="{ on: autorun }">
           <input type="checkbox" v-model="autorun" />
@@ -547,7 +736,7 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="pg__body">
-          <div v-if="loading" class="pg__loading">
+          <div v-if="rendering && (activeTab === 'preview' || activeTab === 'html')" class="pg__loading">
             <span class="pg__spinner"></span>
             compiling…
           </div>
@@ -570,9 +759,13 @@ onBeforeUnmount(() => {
               :key="i"
               class="pg__diag"
               :class="d.severity"
+              role="button"
+              tabindex="0"
+              @click="focusDiagnostic(d)"
+              @keydown.enter.prevent="focusDiagnostic(d)"
             >
               <span class="pg__sev">{{ d.severity }}</span>
-              <span class="pg__loc">{{ d.line }}:{{ d.column }}</span>
+              <span class="pg__loc">{{ diagnosticLocation(d) }}</span>
               <span class="pg__msg">
                 {{ d.message }}<span v-if="d.code" class="pg__diag-code">{{ d.code }}</span>
                 <span v-if="d.help" class="pg__diag-help">help: {{ d.help }}</span>
@@ -947,9 +1140,15 @@ onBeforeUnmount(() => {
   border-left: 3px solid var(--warn);
   margin-bottom: 8px;
   font-size: 13px;
+  cursor: pointer;
+}
+.pg__diag:hover,
+.pg__diag:focus-visible {
+  outline: 1px solid color-mix(in srgb, var(--accent) 42%, transparent);
+  background: color-mix(in srgb, var(--accent) 9%, var(--panel-2));
 }
 .pg__diag.error { border-left-color: var(--danger); }
-.pg__diag.err { border-left-color: var(--danger); grid-template-columns: 1fr; }
+.pg__diag.err { border-left-color: var(--danger); grid-template-columns: 1fr; cursor: default; }
 .pg__sev {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 11px;
@@ -970,6 +1169,19 @@ onBeforeUnmount(() => {
   color: var(--muted);
 }
 .pg__diag-help { display: block; margin-top: 4px; color: var(--accent-2); }
+.pg__cm :deep(.cm-diagnostic) {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 12px;
+}
+.pg__cm :deep(.pg__cm-diag-meta) {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.pg__cm :deep(.pg__cm-diag-help) {
+  margin-top: 4px;
+  color: var(--accent-2);
+}
 .pg__clean {
   color: var(--muted);
   font-family: 'IBM Plex Mono', monospace;
