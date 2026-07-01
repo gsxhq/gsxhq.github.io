@@ -240,8 +240,9 @@ async function format() {
 function onFormat() {
   format().then((d) => {
     if (d && d.error) {
-      error.value = 'format: ' + d.error
-      diagnostics.value = []
+      diagnostics.value = Array.isArray(d.diagnostics) ? d.diagnostics : diagnostics.value
+      setEditorDiagnostics()
+      error.value = diagnostics.value.length ? '' : 'format: ' + d.error
       activeTab.value = 'problems'
     }
   })
@@ -252,8 +253,9 @@ function onFormat() {
 async function formatAndRun() {
   const data = await format()
   if (data && data.error) {
-    error.value = 'format: ' + data.error
-    diagnostics.value = []
+    diagnostics.value = Array.isArray(data.diagnostics) ? data.diagnostics : diagnostics.value
+    setEditorDiagnostics()
+    error.value = diagnostics.value.length ? '' : 'format: ' + data.error
     activeTab.value = 'problems'
     return
   }
@@ -373,12 +375,13 @@ function diagnosticEnd(d: PlaygroundDiagnostic) {
 }
 
 function diagnosticLocation(d: PlaygroundDiagnostic) {
+  const start = diagnosticStart(d)
+  if (start.line < 1 || start.column < 1) return '—'
   const range = editorRangeForDiagnostic(d)
   if (range && view) {
     const line = view.state.doc.lineAt(range.from)
     return `${line.number}:${range.from - line.from + 1}`
   }
-  const start = diagnosticStart(d)
   return `${start.line}:${start.column}`
 }
 
@@ -397,6 +400,7 @@ function fileLineOffset(file?: string) {
 function editorRangeForDiagnostic(d: PlaygroundDiagnostic) {
   if (!view) return null
   const start = diagnosticStart(d)
+  if (start.line < 1 || start.column < 1) return null
   const end = diagnosticEnd(d)
   const offset = fileLineOffset(start.file)
   const lineNo = Math.max(1, offset + start.line)
@@ -527,7 +531,7 @@ onMounted(async () => {
       if (stream.match(/\b(?:package|import|component|func|type|struct|interface|if|else|for|range|switch|case|default|return|var|const|true|false|nil|ctx|children|attrs)\b/)) return 'keyword'
       if (stream.match(/\b[A-Za-z_][\w-]*(?=\s*=)/)) return 'attributeName'
       if (stream.match(/\b[A-Z][\w]*\b/)) return 'typeName'
-      if (stream.match(/\b[A-Za-z_][\w]*(?=\s*\()/)) return 'function(variableName)'
+      if (stream.match(/\b[A-Za-z_][\w]*(?=\s*\()/)) return 'variableName'
       if (stream.match(/\|>|:=|==|!=|<=|>=|&&|\|\||[-+*/%=<>!&|.]+/)) return 'operator'
       if (stream.match(/[{}()[\],;:]/)) return 'punctuation'
       stream.next()
@@ -560,7 +564,7 @@ onMounted(async () => {
             pos = line.to + 1
           }
         }
-        return b.build()
+        return b.finish()
       }
     },
     { decorations: (v: any) => v.decorations },
