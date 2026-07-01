@@ -1,8 +1,11 @@
 import { spawn } from 'node:child_process'
+import { join } from 'node:path'
+import { tmpdir } from 'node:os'
 import { resolveGsxRepo } from './gsx-source.mjs'
 
 const playgroundURL = process.env.VITE_GSX_PLAYGROUND_API ?? 'http://localhost:8088'
 const { root: gsxRoot } = resolveGsxRepo()
+const playgroundServer = join(tmpdir(), `gsxplayground-${process.pid}`)
 const children = new Set()
 let shuttingDown = false
 
@@ -49,10 +52,11 @@ process.on('SIGTERM', () => shutdown(143))
 
 await runStep('node', ['scripts/sync-docs.mjs'])
 await runStep('node', ['scripts/build-playground-wasm.mjs'])
-
-start('go', ['run', '.', '-addr', ':8088', '-gsxmod', gsxRoot], {
+await runStep('go', ['build', '-o', playgroundServer, '.'], {
   cwd: `${gsxRoot}/playground/server`,
 })
+
+start(playgroundServer, ['-addr', ':8088', '-gsxmod', gsxRoot])
 start('npx', ['vitepress', 'dev'], {
   env: {
     ...process.env,
