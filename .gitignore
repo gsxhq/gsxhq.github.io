@@ -1,6 +1,7 @@
 node_modules/
 .vitepress/cache/
 .vitepress/dist/
+.vitepress/theme/presets.generated.json
 # synced from gsxhq/gsx at build/dev time
 /guide
 
