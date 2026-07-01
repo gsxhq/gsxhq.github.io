@@ -36,7 +36,9 @@ function ensureWasm(): Promise<void> {
     // Content-hashed at build time (VITE_GSX_WASM=gsx.<hash>.wasm) so a new
     // version is a new URL — cache invalidation across deploys just works.
     const wasmFile = (import.meta as any).env?.VITE_GSX_WASM ?? 'gsx.wasm'
-    const bytes = await (await fetch(`${base}${wasmFile}`)).arrayBuffer()
+    const isDev = Boolean((import.meta as any).hot)
+    const wasmURL = `${base}${wasmFile}${isDev ? `?t=${Date.now()}` : ''}`
+    const bytes = await (await fetch(wasmURL, isDev ? { cache: 'no-store' } : undefined)).arrayBuffer()
     const result = await WebAssembly.instantiate(bytes, go.importObject)
     // go.run never resolves (the module blocks); it signals readiness via gsxReady.
     await new Promise<void>((resolve) => {
@@ -229,10 +231,16 @@ function onFormat() {
   })
 }
 
-// Run / Cmd-Ctrl+Enter: format-on-run, then render. A format failure is left for
-// render() to surface as the precise diagnostic.
+// Run / Cmd-Ctrl+Enter: format-on-run, then render. A format failure leaves the
+// editor untouched and stops before render.
 async function formatAndRun() {
-  await format()
+  const data = await format()
+  if (data && data.error) {
+    error.value = 'format: ' + data.error
+    diagnostics.value = []
+    activeTab.value = 'problems'
+    return
+  }
   render()
 }
 
