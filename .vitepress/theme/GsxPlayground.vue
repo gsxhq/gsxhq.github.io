@@ -500,9 +500,110 @@ onMounted(async () => {
   const { tags: t } = hl as any
   setDiagnostics = setCodeMirrorDiagnostics
 
+  function closingBacktick(stream: any) {
+    let slashCount = 0
+    for (let i = stream.pos - 1; i >= 0 && stream.string[i] === '\\'; i--) slashCount++
+    return slashCount % 2 === 0
+  }
+
+  function tokenGoish(stream: any, state: any) {
+    if (stream.eatSpace()) return null
+    if (stream.match('//')) {
+      stream.skipToEnd()
+      return 'comment'
+    }
+    if (stream.match('/*')) {
+      state.blockComment = true
+      return 'comment'
+    }
+    if (stream.match(/"(?:[^"\\]|\\.)*"?/)) return 'string'
+    if (stream.match(/`[^`]*`?/)) return 'string'
+    if (stream.match(/'(?:[^'\\]|\\.)*'?/)) return 'string'
+    if (stream.match(/\b\d+(?:\.\d+)?\b/)) return 'number'
+    if (stream.match(/\b(?:package|import|component|func|type|struct|interface|if|else|for|range|switch|case|default|return|var|const|true|false|nil|ctx|children|attrs)\b/)) return 'keyword'
+    if (stream.match(/\b[A-Z][\w]*\b/)) return 'typeName'
+    if (stream.match(/\b[A-Za-z_][\w]*(?=\s*\()/)) return 'variableName'
+    if (stream.match(/\|>|:=|==|!=|<=|>=|&&|\|\||[-+*/%=<>!&|.]+/)) return 'operator'
+    if (stream.match(/[{}()[\],;:]/)) return 'punctuation'
+    stream.next()
+    return null
+  }
+
+  function tokenEmbeddedLiteral(stream: any, state: any) {
+    if (state.embeddedHole) {
+      if (stream.peek() === '{') {
+        state.embeddedHoleDepth++
+        stream.next()
+        return 'punctuation'
+      }
+      if (stream.peek() === '}') {
+        state.embeddedHoleDepth--
+        stream.next()
+        if (state.embeddedHoleDepth === 0) state.embeddedHole = false
+        return 'punctuation'
+      }
+      return tokenGoish(stream, state)
+    }
+
+    if (stream.match('@{')) {
+      state.embeddedHole = true
+      state.embeddedHoleDepth = 1
+      return 'punctuation'
+    }
+    if (stream.peek() === '`' && closingBacktick(stream)) {
+      stream.next()
+      state.embedded = null
+      return 'string'
+    }
+    if (state.embeddedBlockComment) {
+      if (stream.skipTo('*/')) {
+        stream.next()
+        stream.next()
+        state.embeddedBlockComment = false
+      } else {
+        stream.skipToEnd()
+      }
+      return 'comment'
+    }
+    if (stream.eatSpace()) return null
+    if (stream.match(/\\`/)) return 'string'
+    if (stream.match('//')) {
+      stream.skipToEnd()
+      return 'comment'
+    }
+    if (stream.match('/*')) {
+      state.embeddedBlockComment = true
+      return 'comment'
+    }
+    if (stream.match(/"(?:[^"\\]|\\.)*"?/)) return 'string'
+    if (stream.match(/'(?:[^'\\]|\\.)*'?/)) return 'string'
+    if (stream.match(/\b\d+(?:\.\d+)?\b/)) return 'number'
+    if (state.embedded === 'js') {
+      if (stream.match(/\b(?:await|break|case|catch|const|continue|default|delete|do|else|export|false|finally|for|function|get|if|import|in|let|new|null|return|set|switch|this|throw|true|try|typeof|undefined|var|void|while|yield)\b/)) return 'keyword'
+      if (stream.match(/\b[A-Za-z_$][\w$]*(?=\s*\()/)) return 'variableName'
+      if (stream.match(/\b[A-Za-z_$][\w$]*\b/)) return 'variableName'
+    } else {
+      if (stream.match(/--[\w-]+|[A-Za-z-]+(?=\s*:)/)) return 'attributeName'
+      if (stream.match(/#[0-9A-Fa-f]{3,8}\b/)) return 'number'
+      if (stream.match(/\b(?:auto|block|flex|grid|hidden|inherit|initial|inline|none|relative|absolute|fixed|sticky|transparent)\b/)) return 'keyword'
+      if (stream.match(/\b[A-Za-z-]+\b/)) return 'variableName'
+    }
+    if (stream.match(/==|!=|<=|>=|&&|\|\||[-+*/%=<>!&|.]+/)) return 'operator'
+    if (stream.match(/[{}()[\],;:]/)) return 'punctuation'
+    stream.next()
+    return null
+  }
+
   const gsxLanguage = StreamLanguage.define({
-    startState: () => ({ blockComment: false }),
+    startState: () => ({
+      blockComment: false,
+      embedded: null,
+      embeddedBlockComment: false,
+      embeddedHole: false,
+      embeddedHoleDepth: 0,
+    }),
     token(stream: any, state: any) {
+      if (state.embedded) return tokenEmbeddedLiteral(stream, state)
       if (state.blockComment) {
         if (stream.skipTo('*/')) {
           stream.next()
@@ -523,19 +624,17 @@ onMounted(async () => {
         state.blockComment = true
         return 'comment'
       }
+      if (stream.match(/\bjs`/)) {
+        state.embedded = 'js'
+        return 'keyword'
+      }
+      if (stream.match(/\bcss`/)) {
+        state.embedded = 'css'
+        return 'keyword'
+      }
       if (stream.match(/<\/?[A-Za-z][\w.:-]*/)) return 'tagName'
-      if (stream.match(/"(?:[^"\\]|\\.)*"?/)) return 'string'
-      if (stream.match(/`[^`]*`?/)) return 'string'
-      if (stream.match(/'(?:[^'\\]|\\.)*'?/)) return 'string'
-      if (stream.match(/\b\d+(?:\.\d+)?\b/)) return 'number'
-      if (stream.match(/\b(?:package|import|component|func|type|struct|interface|if|else|for|range|switch|case|default|return|var|const|true|false|nil|ctx|children|attrs)\b/)) return 'keyword'
       if (stream.match(/\b[A-Za-z_][\w-]*(?=\s*=)/)) return 'attributeName'
-      if (stream.match(/\b[A-Z][\w]*\b/)) return 'typeName'
-      if (stream.match(/\b[A-Za-z_][\w]*(?=\s*\()/)) return 'variableName'
-      if (stream.match(/\|>|:=|==|!=|<=|>=|&&|\|\||[-+*/%=<>!&|.]+/)) return 'operator'
-      if (stream.match(/[{}()[\],;:]/)) return 'punctuation'
-      stream.next()
-      return null
+      return tokenGoish(stream, state)
     },
     languageData: {
       commentTokens: { line: '//', block: { open: '/*', close: '*/' } },

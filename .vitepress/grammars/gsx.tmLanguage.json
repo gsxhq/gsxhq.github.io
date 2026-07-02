@@ -142,6 +142,12 @@
       "contentName": "source.go",
       "patterns": [
         {
+          "include": "#embedded-js-literal"
+        },
+        {
+          "include": "#embedded-css-literal"
+        },
+        {
           "include": "source.go"
         }
       ]
@@ -222,6 +228,12 @@
           "include": "#go-block"
         },
         {
+          "include": "#embedded-js-attribute"
+        },
+        {
+          "include": "#embedded-css-attribute"
+        },
+        {
           "name": "meta.attribute.class-value.gsx",
           "begin": "(class)\\s*=\\s*(\\{)",
           "beginCaptures": {
@@ -265,6 +277,9 @@
           "contentName": "meta.embedded.block.go.gsx",
           "patterns": [
             {
+              "include": "#embedded-css-literal"
+            },
+            {
               "include": "source.go"
             }
           ]
@@ -284,6 +299,159 @@
         {
           "name": "entity.other.attribute-name.gsx",
           "match": "[A-Za-z_@:][A-Za-z0-9_.:-]*"
+        }
+      ]
+    },
+    "embedded-go-hole": {
+      "name": "meta.embedded.block.go.gsx",
+      "begin": "@\\{",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.section.embedded.begin.gsx"
+        }
+      },
+      "end": "\\}",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.section.embedded.end.gsx"
+        }
+      },
+      "contentName": "source.go",
+      "patterns": [
+        {
+          "include": "source.go"
+        }
+      ]
+    },
+    "embedded-js-literal": {
+      "name": "meta.embedded.block.js.gsx",
+      "begin": "(js)(`)",
+      "beginCaptures": {
+        "1": {
+          "name": "support.type.embedded-language.gsx"
+        },
+        "2": {
+          "name": "punctuation.definition.string.begin.gsx"
+        }
+      },
+      "end": "(?<!\\\\)(?:\\\\\\\\)*\\K`",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.gsx"
+        }
+      },
+      "contentName": "source.js",
+      "patterns": [
+        {
+          "include": "#embedded-go-hole"
+        },
+        {
+          "include": "source.js"
+        }
+      ]
+    },
+    "embedded-css-literal": {
+      "name": "meta.embedded.block.css.gsx",
+      "begin": "(css)(`)",
+      "beginCaptures": {
+        "1": {
+          "name": "support.type.embedded-language.gsx"
+        },
+        "2": {
+          "name": "punctuation.definition.string.begin.gsx"
+        }
+      },
+      "end": "(?<!\\\\)(?:\\\\\\\\)*\\K`",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.gsx"
+        }
+      },
+      "contentName": "source.css",
+      "patterns": [
+        {
+          "include": "#embedded-go-hole"
+        },
+        {
+          "include": "source.css"
+        }
+      ]
+    },
+    "embedded-js-attribute": {
+      "name": "meta.embedded.block.js.gsx",
+      "begin": "([A-Za-z_@:][A-Za-z0-9_.:-]*)(\\s*=\\s*)(\\{?)(js)(`)",
+      "beginCaptures": {
+        "1": {
+          "name": "entity.other.attribute-name.gsx"
+        },
+        "2": {
+          "name": "keyword.operator.assignment.gsx"
+        },
+        "3": {
+          "name": "punctuation.section.embedded.begin.gsx"
+        },
+        "4": {
+          "name": "support.type.embedded-language.gsx"
+        },
+        "5": {
+          "name": "punctuation.definition.string.begin.gsx"
+        }
+      },
+      "end": "((?<!\\\\)(?:\\\\\\\\)*\\K`)(\\})?",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.string.end.gsx"
+        },
+        "2": {
+          "name": "punctuation.section.embedded.end.gsx"
+        }
+      },
+      "contentName": "source.js",
+      "patterns": [
+        {
+          "include": "#embedded-go-hole"
+        },
+        {
+          "include": "source.js"
+        }
+      ]
+    },
+    "embedded-css-attribute": {
+      "name": "meta.embedded.block.css.gsx",
+      "begin": "([A-Za-z_@:][A-Za-z0-9_.:-]*)(\\s*=\\s*)(\\{?)(css)(`)",
+      "beginCaptures": {
+        "1": {
+          "name": "entity.other.attribute-name.gsx"
+        },
+        "2": {
+          "name": "keyword.operator.assignment.gsx"
+        },
+        "3": {
+          "name": "punctuation.section.embedded.begin.gsx"
+        },
+        "4": {
+          "name": "support.type.embedded-language.gsx"
+        },
+        "5": {
+          "name": "punctuation.definition.string.begin.gsx"
+        }
+      },
+      "end": "((?<!\\\\)(?:\\\\\\\\)*\\K`)(\\})?",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.string.end.gsx"
+        },
+        "2": {
+          "name": "punctuation.section.embedded.end.gsx"
+        }
+      },
+      "contentName": "source.css",
+      "patterns": [
+        {
+          "include": "#embedded-go-hole"
+        },
+        {
+          "include": "source.css"
         }
       ]
     },
