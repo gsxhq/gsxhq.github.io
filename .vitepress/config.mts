@@ -1,4 +1,7 @@
 import { defineConfig } from 'vitepress'
+// withMermaid wraps the config to render ```mermaid fences (e.g. the dev-loop
+// sequence diagram); it composes with the custom markdown.languages Shiki setup.
+import { withMermaid } from 'vitepress-plugin-mermaid'
 import gsxGrammar from './grammars/gsx.tmLanguage.json'
 // gsx's grammar embeds Go/JS/CSS; VitePress only lazy-loads languages referenced
 // by a fence, so the embedded bases must be registered explicitly.
@@ -8,7 +11,7 @@ import cssLang from '@shikijs/langs/css'
 
 // Org Pages site served at the root: https://gsxhq.github.io/ (repo is named
 // gsxhq.github.io), so base is '/'.
-export default defineConfig({
+export default withMermaid(defineConfig({
   title: 'gsx',
   description:
     'A templating language for Go — templ-style components, JSX-style markup, compiled to plain Go.',
@@ -102,6 +105,7 @@ export default defineConfig({
           text: 'Tooling',
           items: [
             { text: 'CLI', link: '/guide/cli' },
+            { text: 'Dev loop', link: '/guide/dev-loop' },
             { text: 'Configuration', link: '/guide/config' },
             { text: 'Extensions', link: '/guide/extensions' },
             { text: 'Editor support', link: '/guide/editor' },
@@ -121,4 +125,4 @@ export default defineConfig({
     search: { provider: 'local' },
     socialLinks: [{ icon: 'github', link: 'https://github.com/gsxhq/gsx' }],
   },
-})
+}))
