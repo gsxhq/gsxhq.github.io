@@ -33,7 +33,7 @@
     },
     "component": {
       "name": "meta.component.gsx",
-      "begin": "^(component)\\s+(?:\\(([^)]*)\\)\\s+)?([A-Za-z_][A-Za-z0-9_]*)\\s*\\(([^{]*)\\)\\s*(\\{)\\s*$",
+      "begin": "^(component)\\s+(?:\\(([^)]*)\\)\\s+)?([A-Za-z_][A-Za-z0-9_]*)(\\[[^\\]]*\\])?\\s*\\(([^{]*)\\)\\s*(\\{)\\s*$",
       "beginCaptures": {
         "1": {
           "name": "keyword.control.component.gsx"
@@ -58,6 +58,14 @@
           ]
         },
         "5": {
+          "name": "meta.embedded.line.go.gsx",
+          "patterns": [
+            {
+              "include": "source.go"
+            }
+          ]
+        },
+        "6": {
           "name": "punctuation.section.block.begin.gsx"
         }
       },
@@ -178,13 +186,21 @@
     },
     "component-tag": {
       "name": "meta.tag.component.gsx",
-      "begin": "(</?)((?:[a-z][a-zA-Z0-9]*\\.)?[A-Z][A-Za-z0-9.]*)",
+      "begin": "(</?)((?:[a-z][a-zA-Z0-9]*\\.)?[A-Z][A-Za-z0-9.]*)(\\[[^\\]]+\\])?",
       "beginCaptures": {
         "1": {
           "name": "punctuation.definition.tag.gsx"
         },
         "2": {
           "name": "entity.name.type.component.gsx"
+        },
+        "3": {
+          "name": "meta.embedded.line.go.gsx",
+          "patterns": [
+            {
+              "include": "source.go"
+            }
+          ]
         }
       },
       "end": "(/?>)",

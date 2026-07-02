@@ -520,7 +520,7 @@ onMounted(async () => {
     if (stream.match(/`[^`]*`?/)) return 'string'
     if (stream.match(/'(?:[^'\\]|\\.)*'?/)) return 'string'
     if (stream.match(/\b\d+(?:\.\d+)?\b/)) return 'number'
-    if (stream.match(/\b(?:package|import|component|func|type|struct|interface|if|else|for|range|switch|case|default|return|var|const|true|false|nil|ctx|children|attrs)\b/)) return 'keyword'
+    if (stream.match(/\b(?:package|import|component|func|type|struct|interface|if|else|for|range|switch|case|default|return|var|const|any|true|false|nil|ctx|children|attrs)\b/)) return 'keyword'
     if (stream.match(/\b[A-Z][\w]*\b/)) return 'typeName'
     if (stream.match(/\b[A-Za-z_][\w]*(?=\s*\()/)) return 'variableName'
     if (stream.match(/\|>|:=|==|!=|<=|>=|&&|\|\||[-+*/%=<>!&|.]+/)) return 'operator'
