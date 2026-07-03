@@ -241,6 +241,9 @@
     "attribute": {
       "patterns": [
         {
+          "include": "#comments"
+        },
+        {
           "include": "#go-block"
         },
         {
