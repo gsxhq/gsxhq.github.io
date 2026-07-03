@@ -26,7 +26,9 @@ features:
     details: gsx.Node has the identical method set to templ.Component, so gsx output drops into the templ ecosystem without importing templ.
 ---
 
-> **Status — alpha.** gsx is runnable end-to-end. `gsx init` scaffolds a Go and
-> Vite application, and `npm run dev` starts the warm generation, server rebuild,
-> browser error, and reload loop through `gsx dev`. The language and APIs are
-> usable but may still change before a stable release.
+> **Status — alpha.** The language and APIs may still change before a stable release.
+>
+> [gsx](https://github.com/gsxhq/gsx) — compiler & CLI ·
+> [vscode-gsx](https://github.com/gsxhq/vscode-gsx) — editor extension ·
+> [tree-sitter-gsx](https://github.com/gsxhq/tree-sitter-gsx) — grammar ·
+> [gsxhq.github.io](https://github.com/gsxhq/gsxhq.github.io) — website & playground
