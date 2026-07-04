@@ -2,8 +2,8 @@
 layout: home
 hero:
   name: gsx
-  text: HTML as a first-class Go value
-  tagline: templ-style components, JSX-style markup, compiled to plain Go. A standard-library-only runtime.
+  text: Type-safe HTML that's actually pleasant to write
+  tagline: JSX-style markup, compiled to plain Go. A standard-library-only runtime.
   image:
     src: /gsx-favicon.svg
     alt: gsx
