@@ -3,7 +3,7 @@ layout: home
 hero:
   name: gsx
   text: Type-safe HTML that's actually pleasant to write
-  tagline: JSX-style markup, compiled to plain Go. A standard-library-only runtime.
+  tagline: JSX-style markup, compiled to plain Go.
   image:
     src: /gsx-favicon.svg
     alt: gsx
