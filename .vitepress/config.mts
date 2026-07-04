@@ -37,6 +37,17 @@ export default withMermaid(defineConfig({
     ['meta', { property: 'og:image', content: 'https://gsxhq.github.io/gsx-og.png' }],
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
     ['meta', { name: 'twitter:image', content: 'https://gsxhq.github.io/gsx-og.png' }],
+    // GoatCounter analytics. no_onload defers counting to the theme's router
+    // hook so SPA route changes are counted (not just the first page load).
+    [
+      'script',
+      {
+        'data-goatcounter': 'https://gsxhq.goatcounter.com/count',
+        'data-goatcounter-settings': '{"no_onload":true}',
+        async: '',
+        src: 'https://gc.zgo.at/count.js',
+      },
+    ],
   ],
   // In CI the gsx repo is checked out into ./_gsx; exclude it (and the repo's own
   // README) so VitePress only builds index.md + the synced guide/ pages — not the
