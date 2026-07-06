@@ -555,6 +555,23 @@ onMounted(async () => {
       state.embedded = null
       return 'string'
     }
+    // Plain (non-JS, non-CSS) interpolating attribute literal: everything that is
+    // not an @{ } hole, a backtick, or a `\`escape is literal text (one 'string'
+    // run). No JS/CSS keyword tokenisation — the value is opaque text.
+    if (state.embedded === 'plain') {
+      if (stream.match(/\\./)) return 'string'
+      if (stream.eatSpace()) return null
+      let advanced = false
+      while (!stream.eol()) {
+        const c = stream.peek()
+        if (c === '`' || c === '\\') break
+        if (c === '@' && stream.string[stream.pos + 1] === '{') break
+        stream.next()
+        advanced = true
+      }
+      if (!advanced) stream.next()
+      return 'string'
+    }
     if (state.embeddedBlockComment) {
       if (stream.skipTo('*/')) {
         stream.next()
@@ -601,9 +618,20 @@ onMounted(async () => {
       embeddedBlockComment: false,
       embeddedHole: false,
       embeddedHoleDepth: 0,
+      attrLiteralPending: false,
     }),
     token(stream: any, state: any) {
       if (state.embedded) return tokenEmbeddedLiteral(stream, state)
+      // A plain interpolating attribute literal value opens with a backtick that
+      // directly follows `name=` (flagged when the name was tokenised). Enter the
+      // embedded-literal state so @{ } holes break out instead of being swallowed
+      // into a Go raw string.
+      if (state.attrLiteralPending && stream.peek() === '`') {
+        state.attrLiteralPending = false
+        stream.next()
+        state.embedded = 'plain'
+        return 'string'
+      }
       if (state.blockComment) {
         if (stream.skipTo('*/')) {
           stream.next()
@@ -633,6 +661,12 @@ onMounted(async () => {
         return 'keyword'
       }
       if (stream.match(/<\/?[A-Za-z][\w.:-]*/)) return 'tagName'
+      // Attribute name introducing a plain backtick literal value (`name=` …`):
+      // remember it so the following backtick opens an interpolating literal.
+      if (stream.match(/[A-Za-z_@:][\w@:.-]*(?=\s*=\s*`)/)) {
+        state.attrLiteralPending = true
+        return 'attributeName'
+      }
       if (stream.match(/\b[A-Za-z_][\w-]*(?=\s*=)/)) return 'attributeName'
       return tokenGoish(stream, state)
     },
