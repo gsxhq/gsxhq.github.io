@@ -124,11 +124,17 @@ export default withMermaid(defineConfig({
           ],
         },
         {
+          text: 'Patterns',
+          items: [
+            { text: 'Overview', link: '/guide/patterns' },
+            { text: 'Render once', link: '/guide/patterns/render-once' },
+          ],
+        },
+        {
           text: 'Interop and Gaps',
           items: [
             { text: 'Comparisons', link: '/guide/comparisons' },
             { text: 'Interop', link: '/guide/syntax/interop' },
-            { text: 'Render once', link: '/guide/syntax/render-once' },
           ],
         },
       ],
