@@ -12,6 +12,15 @@
       "include": "#embedded-f-literal"
     },
     {
+      "include": "#fragment"
+    },
+    {
+      "include": "#component-tag"
+    },
+    {
+      "include": "#element-tag"
+    },
+    {
       "include": "source.go"
     }
   ],
