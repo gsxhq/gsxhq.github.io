@@ -31,6 +31,19 @@
           "include": "#embedded-go-hole"
         }
       ]
+    },
+    "L:source.gsx -string -comment -meta.embedded.block.js.gsx -meta.embedded.block.css.gsx": {
+      "patterns": [
+        {
+          "include": "#fragment"
+        },
+        {
+          "include": "#component-tag"
+        },
+        {
+          "include": "#element-tag"
+        }
+      ]
     }
   },
   "repository": {
