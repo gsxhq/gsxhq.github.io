@@ -500,7 +500,9 @@ onMounted(async () => {
   const { tags: t } = hl as any
   setDiagnostics = setCodeMirrorDiagnostics
 
-  function closingBacktick(stream: any) {
+  // True when the char at stream.pos is not backslash-escaped (an even number of
+  // preceding backslashes). Delimiter-agnostic — used for both `…` and "…".
+  function isUnescaped(stream: any) {
     let slashCount = 0
     for (let i = stream.pos - 1; i >= 0 && stream.string[i] === '\\'; i--) slashCount++
     return slashCount % 2 === 0
@@ -550,21 +552,22 @@ onMounted(async () => {
       state.embeddedHoleDepth = 1
       return 'punctuation'
     }
-    if (stream.peek() === '`' && closingBacktick(stream)) {
+    if (stream.peek() === state.embeddedDelim && isUnescaped(stream)) {
       stream.next()
       state.embedded = null
+      state.embeddedDelim = null
       return 'string'
     }
-    // Plain (non-JS, non-CSS) interpolating attribute literal: everything that is
-    // not an @{ } hole, a backtick, or a `\`escape is literal text (one 'string'
-    // run). No JS/CSS keyword tokenisation — the value is opaque text.
-    if (state.embedded === 'plain') {
+    // f`…`/f"…": generic interpolating literal. Everything that is not an @{ } hole,
+    // the closing delimiter, or a `\`escape is literal text (one 'string' run). No
+    // JS/CSS keyword tokenisation — the value is opaque auto-escaped text.
+    if (state.embedded === 'f') {
       if (stream.match(/\\./)) return 'string'
       if (stream.eatSpace()) return null
       let advanced = false
       while (!stream.eol()) {
         const c = stream.peek()
-        if (c === '`' || c === '\\') break
+        if (c === state.embeddedDelim || c === '\\') break
         if (c === '@' && stream.string[stream.pos + 1] === '{') break
         stream.next()
         advanced = true
@@ -583,7 +586,7 @@ onMounted(async () => {
       return 'comment'
     }
     if (stream.eatSpace()) return null
-    if (stream.match(/\\`/)) return 'string'
+    if (stream.match(/\\[`"]/)) return 'string'
     if (stream.match('//')) {
       stream.skipToEnd()
       return 'comment'
@@ -615,23 +618,13 @@ onMounted(async () => {
     startState: () => ({
       blockComment: false,
       embedded: null,
+      embeddedDelim: null,
       embeddedBlockComment: false,
       embeddedHole: false,
       embeddedHoleDepth: 0,
-      attrLiteralPending: false,
     }),
     token(stream: any, state: any) {
       if (state.embedded) return tokenEmbeddedLiteral(stream, state)
-      // A plain interpolating attribute literal value opens with a backtick that
-      // directly follows `name=` (flagged when the name was tokenised). Enter the
-      // embedded-literal state so @{ } holes break out instead of being swallowed
-      // into a Go raw string.
-      if (state.attrLiteralPending && stream.peek() === '`') {
-        state.attrLiteralPending = false
-        stream.next()
-        state.embedded = 'plain'
-        return 'string'
-      }
       if (state.blockComment) {
         if (stream.skipTo('*/')) {
           stream.next()
@@ -652,21 +645,20 @@ onMounted(async () => {
         state.blockComment = true
         return 'comment'
       }
-      if (stream.match(/\bjs`/)) {
-        state.embedded = 'js'
+      // f/js/css interpolating literals, either delimiter (`…`/"…"). Opt-in: only a
+      // prefix glued to the delimiter interpolates; a bare `…`/"…" is a plain Go
+      // string (tokenGoish). @{ } holes break out inside. This is flat, so it also
+      // fires for a leading f`…` value inside a { } interpolation.
+      const lit = stream.match(/\b(f|js|css)([`"])/)
+      if (lit) {
+        state.embedded = lit[1]
+        state.embeddedDelim = lit[2]
         return 'keyword'
       }
-      if (stream.match(/\bcss`/)) {
-        state.embedded = 'css'
-        return 'keyword'
-      }
+      // Tags and fragments (<>, </>, <Tag>, </tag>). Flat, so element/fragment
+      // VALUES inside { } interpolations ({ wrap(<div/>) }) highlight too.
+      if (stream.match(/<\/?>/)) return 'tagName'
       if (stream.match(/<\/?[A-Za-z][\w.:-]*/)) return 'tagName'
-      // Attribute name introducing a plain backtick literal value (`name=` …`):
-      // remember it so the following backtick opens an interpolating literal.
-      if (stream.match(/[A-Za-z_@:][\w@:.-]*(?=\s*=\s*`)/)) {
-        state.attrLiteralPending = true
-        return 'attributeName'
-      }
       if (stream.match(/\b[A-Za-z_][\w-]*(?=\s*=)/)) return 'attributeName'
       return tokenGoish(stream, state)
     },

@@ -9,6 +9,9 @@
       "include": "#component"
     },
     {
+      "include": "#embedded-f-literal"
+    },
+    {
       "include": "source.go"
     }
   ],
@@ -138,6 +141,18 @@
       "contentName": "source.go",
       "patterns": [
         {
+          "include": "#embedded-f-literal"
+        },
+        {
+          "include": "#fragment"
+        },
+        {
+          "include": "#component-tag"
+        },
+        {
+          "include": "#element-tag"
+        },
+        {
           "include": "source.go"
         }
       ]
@@ -159,10 +174,22 @@
       "contentName": "source.go",
       "patterns": [
         {
+          "include": "#embedded-f-literal"
+        },
+        {
           "include": "#embedded-js-literal"
         },
         {
           "include": "#embedded-css-literal"
+        },
+        {
+          "include": "#fragment"
+        },
+        {
+          "include": "#component-tag"
+        },
+        {
+          "include": "#element-tag"
         },
         {
           "include": "source.go"
@@ -262,7 +289,7 @@
           "include": "#embedded-css-attribute"
         },
         {
-          "include": "#interpolated-literal-attribute"
+          "include": "#embedded-f-attribute"
         },
         {
           "name": "meta.attribute.class-value.gsx",
@@ -283,6 +310,9 @@
           },
           "contentName": "meta.embedded.block.go.gsx",
           "patterns": [
+            {
+              "include": "#embedded-f-literal"
+            },
             {
               "include": "source.go"
             }
@@ -308,6 +338,9 @@
           "contentName": "meta.embedded.block.go.gsx",
           "patterns": [
             {
+              "include": "#embedded-f-literal"
+            },
+            {
               "include": "#embedded-css-literal"
             },
             {
@@ -322,6 +355,11 @@
           "name": "string.quoted.double.gsx",
           "begin": "\"",
           "end": "\""
+        },
+        {
+          "name": "string.quoted.other.backtick.gsx",
+          "begin": "`",
+          "end": "`"
         },
         {
           "name": "keyword.operator.assignment.gsx",
@@ -354,9 +392,9 @@
         }
       ]
     },
-    "embedded-js-literal": {
-      "name": "meta.embedded.block.js.gsx",
-      "begin": "(js)(`)",
+    "embedded-f-literal": {
+      "name": "meta.embedded.block.fstring.gsx",
+      "begin": "(?<![A-Za-z0-9_.])(f)([`\"])",
       "beginCaptures": {
         "1": {
           "name": "support.type.embedded-language.gsx"
@@ -365,7 +403,31 @@
           "name": "punctuation.definition.string.begin.gsx"
         }
       },
-      "end": "(?<!\\\\)(?:\\\\\\\\)*\\K`",
+      "end": "(?<!\\\\)(?:\\\\\\\\)*\\K\\2",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.gsx"
+        }
+      },
+      "contentName": "string.interpolated.gsx",
+      "patterns": [
+        {
+          "include": "#embedded-go-hole"
+        }
+      ]
+    },
+    "embedded-js-literal": {
+      "name": "meta.embedded.block.js.gsx",
+      "begin": "(?<![A-Za-z0-9_.])(js)([`\"])",
+      "beginCaptures": {
+        "1": {
+          "name": "support.type.embedded-language.gsx"
+        },
+        "2": {
+          "name": "punctuation.definition.string.begin.gsx"
+        }
+      },
+      "end": "(?<!\\\\)(?:\\\\\\\\)*\\K\\2",
       "endCaptures": {
         "0": {
           "name": "punctuation.definition.string.end.gsx"
@@ -383,7 +445,7 @@
     },
     "embedded-css-literal": {
       "name": "meta.embedded.block.css.gsx",
-      "begin": "(css)(`)",
+      "begin": "(?<![A-Za-z0-9_.])(css)([`\"])",
       "beginCaptures": {
         "1": {
           "name": "support.type.embedded-language.gsx"
@@ -392,7 +454,7 @@
           "name": "punctuation.definition.string.begin.gsx"
         }
       },
-      "end": "(?<!\\\\)(?:\\\\\\\\)*\\K`",
+      "end": "(?<!\\\\)(?:\\\\\\\\)*\\K\\2",
       "endCaptures": {
         "0": {
           "name": "punctuation.definition.string.end.gsx"
@@ -408,9 +470,9 @@
         }
       ]
     },
-    "embedded-js-attribute": {
-      "name": "meta.embedded.block.js.gsx",
-      "begin": "([A-Za-z_@:][A-Za-z0-9_.:-]*)(\\s*=\\s*)(\\{?)(js)(`)",
+    "embedded-f-attribute": {
+      "name": "meta.embedded.block.fstring.gsx",
+      "begin": "([A-Za-z_@:][A-Za-z0-9_.:-]*)(\\s*=\\s*)(\\{?)(f)([`\"])",
       "beginCaptures": {
         "1": {
           "name": "entity.other.attribute-name.gsx"
@@ -428,7 +490,43 @@
           "name": "punctuation.definition.string.begin.gsx"
         }
       },
-      "end": "((?<!\\\\)(?:\\\\\\\\)*\\K`)(\\})?",
+      "end": "((?<!\\\\)(?:\\\\\\\\)*\\K\\5)(\\})?",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.string.end.gsx"
+        },
+        "2": {
+          "name": "punctuation.section.embedded.end.gsx"
+        }
+      },
+      "contentName": "string.interpolated.gsx",
+      "patterns": [
+        {
+          "include": "#embedded-go-hole"
+        }
+      ]
+    },
+    "embedded-js-attribute": {
+      "name": "meta.embedded.block.js.gsx",
+      "begin": "([A-Za-z_@:][A-Za-z0-9_.:-]*)(\\s*=\\s*)(\\{?)(js)([`\"])",
+      "beginCaptures": {
+        "1": {
+          "name": "entity.other.attribute-name.gsx"
+        },
+        "2": {
+          "name": "keyword.operator.assignment.gsx"
+        },
+        "3": {
+          "name": "punctuation.section.embedded.begin.gsx"
+        },
+        "4": {
+          "name": "support.type.embedded-language.gsx"
+        },
+        "5": {
+          "name": "punctuation.definition.string.begin.gsx"
+        }
+      },
+      "end": "((?<!\\\\)(?:\\\\\\\\)*\\K\\5)(\\})?",
       "endCaptures": {
         "1": {
           "name": "punctuation.definition.string.end.gsx"
@@ -449,7 +547,7 @@
     },
     "embedded-css-attribute": {
       "name": "meta.embedded.block.css.gsx",
-      "begin": "([A-Za-z_@:][A-Za-z0-9_.:-]*)(\\s*=\\s*)(\\{?)(css)(`)",
+      "begin": "([A-Za-z_@:][A-Za-z0-9_.:-]*)(\\s*=\\s*)(\\{?)(css)([`\"])",
       "beginCaptures": {
         "1": {
           "name": "entity.other.attribute-name.gsx"
@@ -467,7 +565,7 @@
           "name": "punctuation.definition.string.begin.gsx"
         }
       },
-      "end": "((?<!\\\\)(?:\\\\\\\\)*\\K`)(\\})?",
+      "end": "((?<!\\\\)(?:\\\\\\\\)*\\K\\5)(\\})?",
       "endCaptures": {
         "1": {
           "name": "punctuation.definition.string.end.gsx"
@@ -483,33 +581,6 @@
         },
         {
           "include": "source.css"
-        }
-      ]
-    },
-    "interpolated-literal-attribute": {
-      "name": "meta.attribute.literal-value.gsx",
-      "begin": "([A-Za-z_@:][A-Za-z0-9_.:-]*)(\\s*=\\s*)(`)",
-      "beginCaptures": {
-        "1": {
-          "name": "entity.other.attribute-name.gsx"
-        },
-        "2": {
-          "name": "keyword.operator.assignment.gsx"
-        },
-        "3": {
-          "name": "punctuation.definition.string.begin.gsx"
-        }
-      },
-      "end": "(?<!\\\\)(?:\\\\\\\\)*\\K`",
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.definition.string.end.gsx"
-        }
-      },
-      "contentName": "string.interpolated.gsx",
-      "patterns": [
-        {
-          "include": "#embedded-go-hole"
         }
       ]
     },
