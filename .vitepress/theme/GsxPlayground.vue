@@ -18,6 +18,7 @@ const { isDark } = useData()
 const base = (import.meta as any).env?.BASE_URL ?? '/'
 const API =
   (import.meta as any).env?.VITE_GSX_PLAYGROUND_API ?? 'http://localhost:8088'
+const isDevBuild = Boolean((import.meta as any).env?.DEV)
 
 let wasmPromise: Promise<void> | null = null
 function ensureWasm(): Promise<void> {
@@ -206,7 +207,9 @@ async function render(opts: { transform?: boolean } = {}) {
     }
   } catch {
     if (mine !== seq) return
-    error.value = `Could not reach the render service at ${API} — is the playground server running?`
+    error.value = isDevBuild
+      ? `Could not reach the local render service at ${API}. Start the playground server and try again.`
+      : 'The hosted render service is unavailable. Try again in a moment.'
     activeTab.value = 'problems'
   } finally {
     if (mine === seq) rendering.value = false
