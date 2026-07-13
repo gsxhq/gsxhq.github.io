@@ -21,7 +21,7 @@ features:
   - title: Type-safe by construction
     details: Components lower to plain Go the compiler checks. Props use generated or user-owned structs, so contracts stay typed and explicit.
   - title: Close to HTML, close to Go
-    details: JSX-style markup for templates; ordinary Go for everything else. Tag names and package declarations distinguish components from elements.
+    details: JSX-style markup for templates; ordinary Go for everything else. Tag names and package-level declarations distinguish components from elements.
     link: /guide/syntax/basic-syntax#element-vs-component
     linkText: See the syntax reference
   - title: templ-compatible
