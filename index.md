@@ -19,14 +19,16 @@ hero:
       link: /playground
 features:
   - title: Type-safe by construction
-    details: Components lower to plain Go the compiler checks. Props are generated structs — gsx owns the field names, so there is no symbol-resolver guesswork.
+    details: Components lower to plain Go the compiler checks. Props use generated or user-owned structs, so contracts stay typed and explicit.
   - title: Close to HTML, close to Go
-    details: JSX-style markup for templates; ordinary Go for everything else. Capitalization decides component-vs-element.
+    details: JSX-style markup for templates; ordinary Go for everything else. Tag names and package-level declarations distinguish components from elements.
+    link: /guide/syntax/basic-syntax#element-vs-component
+    linkText: See the syntax reference
   - title: templ-compatible
     details: gsx.Node has the identical method set to templ.Component, so gsx output drops into the templ ecosystem without importing templ.
 ---
 
-> **Status — alpha.** The language and APIs may still change before a stable release.
+> **[Status — alpha.](/guide/status)** The language and APIs may still change before a stable release.
 >
 > [gsx](https://github.com/gsxhq/gsx) — compiler & CLI ·
 > [vscode-gsx](https://github.com/gsxhq/vscode-gsx) — editor extension ·
