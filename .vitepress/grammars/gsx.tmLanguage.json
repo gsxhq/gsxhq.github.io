@@ -12,6 +12,12 @@
       "include": "#embedded-f-literal"
     },
     {
+      "include": "#embedded-js-literal"
+    },
+    {
+      "include": "#embedded-css-literal"
+    },
+    {
       "include": "#fragment"
     },
     {
@@ -164,6 +170,12 @@
       "patterns": [
         {
           "include": "#embedded-f-literal"
+        },
+        {
+          "include": "#embedded-js-literal"
+        },
+        {
+          "include": "#embedded-css-literal"
         },
         {
           "include": "#fragment"
