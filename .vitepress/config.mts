@@ -9,12 +9,13 @@ import goLang from '@shikijs/langs/go'
 import jsLang from '@shikijs/langs/javascript'
 import cssLang from '@shikijs/langs/css'
 
+const positioning = 'gsx — JSX-style HTML, compiled to plain Go.'
+
 // Org Pages site served at the root: https://gsxhq.github.io/ (repo is named
 // gsxhq.github.io), so base is '/'.
 export default withMermaid(defineConfig({
   title: 'gsx',
-  description:
-    'A templating language for Go — templ-style components, JSX-style markup, compiled to plain Go.',
+  description: positioning,
   base: '/',
   head: [
     ['link', { rel: 'preconnect', href: 'https://fonts.googleapis.com' }],
@@ -33,7 +34,7 @@ export default withMermaid(defineConfig({
     ['link', { rel: 'apple-touch-icon', sizes: '180x180', href: '/gsx-favicon-180.png' }],
     // Social / Open Graph preview.
     ['meta', { property: 'og:type', content: 'website' }],
-    ['meta', { property: 'og:title', content: 'gsx — HTML as a first-class Go value' }],
+    ['meta', { property: 'og:title', content: positioning }],
     ['meta', { property: 'og:image', content: 'https://gsxhq.github.io/gsx-og.png' }],
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
     ['meta', { name: 'twitter:image', content: 'https://gsxhq.github.io/gsx-og.png' }],
@@ -131,8 +132,9 @@ export default withMermaid(defineConfig({
           ],
         },
         {
-          text: 'Interop and Gaps',
+          text: 'Project',
           items: [
+            { text: 'Status', link: '/guide/status' },
             { text: 'Comparisons', link: '/guide/comparisons' },
             { text: 'Interop', link: '/guide/syntax/interop' },
           ],
