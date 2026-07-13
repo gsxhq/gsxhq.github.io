@@ -1,7 +1,4 @@
 import { defineConfig } from 'vitepress'
-// withMermaid wraps the config to render ```mermaid fences (e.g. the dev-loop
-// sequence diagram); it composes with the custom markdown.languages Shiki setup.
-import { withMermaid } from 'vitepress-plugin-mermaid'
 import gsxGrammar from './grammars/gsx.tmLanguage.json'
 // gsx's grammar embeds Go/JS/CSS; VitePress only lazy-loads languages referenced
 // by a fence, so the embedded bases must be registered explicitly.
@@ -13,7 +10,7 @@ const positioning = 'gsx — JSX-style HTML, compiled to plain Go.'
 
 // Org Pages site served at the root: https://gsxhq.github.io/ (repo is named
 // gsxhq.github.io), so base is '/'.
-export default withMermaid(defineConfig({
+export default defineConfig({
   title: 'gsx',
   description: positioning,
   base: '/',
@@ -144,4 +141,4 @@ export default withMermaid(defineConfig({
     search: { provider: 'local' },
     socialLinks: [{ icon: 'github', link: 'https://github.com/gsxhq/gsx' }],
   },
-}))
+})
