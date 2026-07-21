@@ -148,6 +148,12 @@
           "include": "#element-tag"
         },
         {
+          "include": "#control-flow"
+        },
+        {
+          "include": "#control-flow-switch"
+        },
+        {
           "include": "#interp"
         }
       ]
@@ -227,6 +233,123 @@
         },
         {
           "include": "source.go"
+        }
+      ]
+    },
+    "control-flow": {
+      "begin": "(\\{)\\s*(if|for)\\b",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.section.embedded.begin.gsx"
+        },
+        "2": {
+          "name": "keyword.control.go"
+        }
+      },
+      "end": "(\\})",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.section.embedded.end.gsx"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#control-body"
+        },
+        {
+          "name": "keyword.control.go",
+          "match": "\\belse\\b"
+        },
+        {
+          "include": "source.go"
+        }
+      ]
+    },
+    "control-body": {
+      "begin": "(\\{)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.section.embedded.begin.gsx"
+        }
+      },
+      "end": "(\\})",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.section.embedded.end.gsx"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#markup"
+        }
+      ]
+    },
+    "control-flow-switch": {
+      "begin": "(\\{)\\s*(switch)\\b",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.section.embedded.begin.gsx"
+        },
+        "2": {
+          "name": "keyword.control.go"
+        }
+      },
+      "end": "(\\})",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.section.embedded.end.gsx"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#switch-body"
+        },
+        {
+          "include": "source.go"
+        }
+      ]
+    },
+    "switch-body": {
+      "begin": "(\\{)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.section.embedded.begin.gsx"
+        }
+      },
+      "end": "(\\})",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.section.embedded.end.gsx"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#switch-case"
+        }
+      ]
+    },
+    "switch-case": {
+      "begin": "\\b(case|default)\\b([^:]*)(:)",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.control.go"
+        },
+        "2": {
+          "name": "meta.embedded.line.go.gsx",
+          "patterns": [
+            {
+              "include": "source.go"
+            }
+          ]
+        },
+        "3": {
+          "name": "punctuation.separator.gsx"
+        }
+      },
+      "end": "(?=\\b(?:case|default)\\b|\\})",
+      "patterns": [
+        {
+          "include": "#markup"
         }
       ]
     },
