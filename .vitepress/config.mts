@@ -130,6 +130,7 @@ export default withMermaid(defineConfig({
           items: [
             { text: 'Overview', link: '/guide/patterns' },
             { text: 'Render once', link: '/guide/patterns/render-once' },
+            { text: 'Streaming flush', link: '/guide/patterns/streaming-flush' },
             { text: 'Package renderers', link: '/guide/patterns/package-renderers' },
           ],
         },
