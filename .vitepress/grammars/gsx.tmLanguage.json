@@ -71,6 +71,19 @@
         }
       ]
     },
+    "content-comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.gsx",
+          "match": "^[ \\t]*//.*$"
+        },
+        {
+          "name": "comment.block.html.gsx",
+          "begin": "<!--",
+          "end": "-->"
+        }
+      ]
+    },
     "component": {
       "name": "meta.component.gsx",
       "begin": "^(component)\\s+(?:\\(([^)]*)\\)\\s+)?([A-Za-z_][A-Za-z0-9_]*)(\\[[^\\]]*\\])?\\s*\\(([^{]*)\\)\\s*(\\{)\\s*$",
@@ -124,7 +137,7 @@
     "markup": {
       "patterns": [
         {
-          "include": "#comments"
+          "include": "#content-comments"
         },
         {
           "include": "#go-block"

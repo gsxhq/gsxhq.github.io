@@ -625,6 +625,12 @@ onMounted(async () => {
       embeddedBlockComment: false,
       embeddedHole: false,
       embeddedHoleDepth: 0,
+      // Depth of tag-open regions we're inside (</Tag ...>, </tag ...>, <?pi ...>)
+      // that haven't yet reached their closing >. A counter rather than a bool so a
+      // nested element literal inside an attribute value (<Foo x={<Bar/>}>) doesn't
+      // clear attribute mode early when Bar's /> closes. Gates the // rule below —
+      // this flat tokenizer has no other notion of "attribute vs. child content".
+      tagDepth: 0,
     }),
     token(stream: any, state: any) {
       if (state.embedded) return tokenEmbeddedLiteral(stream, state)
@@ -640,9 +646,31 @@ onMounted(async () => {
       }
       if (stream.sol() && stream.match(/^--\s+\S.+\s+--\s*$/)) return 'meta'
       if (stream.eatSpace()) return null
+      // Peeked (not consumed): just closes the tag depth opened below so the //
+      // rule next sees "back in child content". The bracket itself still falls
+      // through to tokenGoish's ordinary operator coloring, unchanged.
+      if (state.tagDepth > 0 && stream.match(/\/?>/, false)) state.tagDepth--
+      // Bare `//`: inside a tag's attribute area (tagDepth > 0) it's always a
+      // comment — matches real Go and the existing attribute-position rule. In
+      // child content it's a comment only when it's the first non-whitespace on
+      // its source line (gsx's bare-line-comment rule); mid-line in content it's
+      // literal text that falls through to tokenGoish untouched. atLineStart is
+      // re-derived from the line text (not stream.sol()) because eatSpace()
+      // above may already have consumed this line's leading whitespace in an
+      // earlier token() call, at which point sol() is no longer true.
+      // Known approximation: this flat tokenizer has no separate "Go code"
+      // state for interpolation/go-block/control-flow bodies outside tags —
+      // they're content too, so a genuine trailing Go `//` comment inside one
+      // (e.g. `{{ x := 1 // note }}`) only highlights when line-anchored, same
+      // as prose text. Rare in practice; not modeled (would need brace-depth
+      // tracking of Go-vs-markup regions, out of scope for this fix).
+      const atLineStart = /^[ \t]*$/.test(stream.string.slice(0, stream.pos))
       if (stream.match('//')) {
-        stream.skipToEnd()
-        return 'comment'
+        if (state.tagDepth > 0 || atLineStart) {
+          stream.skipToEnd()
+          return 'comment'
+        }
+        return null
       }
       if (stream.match('/*')) {
         state.blockComment = true
@@ -661,13 +689,19 @@ onMounted(async () => {
       // Tags and fragments (<>, </>, <Tag>, </tag>). Flat, so element/fragment
       // VALUES inside { } interpolations ({ wrap(<div/>) }) highlight too.
       if (stream.match(/<\/?>/)) return 'tagName'
-      if (stream.match(/<\/?[A-Za-z][\w.:-]*/)) return 'tagName'
+      if (stream.match(/<\/?[A-Za-z][\w.:-]*/)) {
+        state.tagDepth++
+        return 'tagName'
+      }
       // Processing instructions: <?marker name=VALUE> / <?start name=VALUE>
       // …<?end> (client-side patching markers/regions). marker/start/end are
       // the only valid targets. The following `name=`/VALUE fall through to
       // the ordinary attributeName/string/interpolation rules below — same
       // markup as any tag's attribute.
-      if (stream.match(/<\?(?:marker|start|end)\b/)) return 'tagName'
+      if (stream.match(/<\?(?:marker|start|end)\b/)) {
+        state.tagDepth++
+        return 'tagName'
+      }
       if (stream.match(/\b[A-Za-z_][\w-]*(?=\s*=)/)) return 'attributeName'
       return tokenGoish(stream, state)
     },
