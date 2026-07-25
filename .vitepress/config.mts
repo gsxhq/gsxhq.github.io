@@ -111,6 +111,7 @@ export default withMermaid(defineConfig({
             { text: 'Context', link: '/guide/syntax/context' },
             { text: 'Runtime helpers', link: '/guide/syntax/std-functions' },
             { text: 'Forms', link: '/guide/syntax/forms' },
+            { text: 'Processing instructions', link: '/guide/syntax/processing-instructions' },
           ],
         },
         {
