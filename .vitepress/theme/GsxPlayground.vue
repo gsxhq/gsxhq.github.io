@@ -662,6 +662,12 @@ onMounted(async () => {
       // VALUES inside { } interpolations ({ wrap(<div/>) }) highlight too.
       if (stream.match(/<\/?>/)) return 'tagName'
       if (stream.match(/<\/?[A-Za-z][\w.:-]*/)) return 'tagName'
+      // Processing instructions: <?marker name=VALUE> / <?start name=VALUE>
+      // …<?end> (client-side patching markers/regions). marker/start/end are
+      // the only valid targets. The following `name=`/VALUE fall through to
+      // the ordinary attributeName/string/interpolation rules below — same
+      // markup as any tag's attribute.
+      if (stream.match(/<\?(?:marker|start|end)\b/)) return 'tagName'
       if (stream.match(/\b[A-Za-z_][\w-]*(?=\s*=)/)) return 'attributeName'
       return tokenGoish(stream, state)
     },
