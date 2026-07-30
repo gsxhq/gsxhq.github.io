@@ -152,6 +152,15 @@
           "include": "#doctype"
         },
         {
+          "include": "#processing-instruction-marker"
+        },
+        {
+          "include": "#processing-instruction-start"
+        },
+        {
+          "include": "#processing-instruction-end"
+        },
+        {
           "include": "#fragment"
         },
         {
@@ -342,7 +351,7 @@
       ]
     },
     "switch-case": {
-      "begin": "\\b(case|default)\\b([^:]*)(:)",
+      "begin": "^\\s*(case|default)\\b([^:]*)(:)",
       "beginCaptures": {
         "1": {
           "name": "keyword.control.go"
@@ -359,7 +368,7 @@
           "name": "punctuation.separator.gsx"
         }
       },
-      "end": "(?=\\b(?:case|default)\\b|\\})",
+      "end": "(?=^\\s*(?:case|default)\\b|\\})",
       "patterns": [
         {
           "include": "#markup"
@@ -377,6 +386,67 @@
           "name": "keyword.other.doctype.gsx"
         },
         "4": {
+          "name": "punctuation.definition.tag.gsx"
+        }
+      }
+    },
+    "processing-instruction-marker": {
+      "name": "meta.tag.processing-instruction.marker.gsx",
+      "begin": "(<\\?)(marker)\\b",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.gsx"
+        },
+        "2": {
+          "name": "entity.name.tag.processing-instruction.gsx"
+        }
+      },
+      "end": "(>)",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.gsx"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#attribute"
+        }
+      ]
+    },
+    "processing-instruction-start": {
+      "name": "meta.tag.processing-instruction.start.gsx",
+      "begin": "(<\\?)(start)\\b",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.gsx"
+        },
+        "2": {
+          "name": "entity.name.tag.processing-instruction.gsx"
+        }
+      },
+      "end": "(>)",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.gsx"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#attribute"
+        }
+      ]
+    },
+    "processing-instruction-end": {
+      "name": "meta.tag.processing-instruction.end.gsx",
+      "match": "(<\\?)(end)\\b\\s*(>)",
+      "captures": {
+        "1": {
+          "name": "punctuation.definition.tag.gsx"
+        },
+        "2": {
+          "name": "entity.name.tag.processing-instruction.gsx"
+        },
+        "3": {
           "name": "punctuation.definition.tag.gsx"
         }
       }
@@ -484,6 +554,9 @@
               "include": "#embedded-f-literal"
             },
             {
+              "include": "#composable-arm-body"
+            },
+            {
               "include": "source.go"
             }
           ]
@@ -514,6 +587,9 @@
               "include": "#embedded-css-literal"
             },
             {
+              "include": "#composable-arm-body"
+            },
+            {
               "include": "source.go"
             }
           ]
@@ -538,6 +614,34 @@
         {
           "name": "entity.other.attribute-name.gsx",
           "match": "[A-Za-z_@:][A-Za-z0-9_.:-]*"
+        }
+      ]
+    },
+    "composable-arm-body": {
+      "begin": "(\\{)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.section.embedded.begin.gsx"
+        }
+      },
+      "end": "(\\})",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.section.embedded.end.gsx"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#embedded-f-literal"
+        },
+        {
+          "include": "#embedded-css-literal"
+        },
+        {
+          "include": "#composable-arm-body"
+        },
+        {
+          "include": "source.go"
         }
       ]
     },
