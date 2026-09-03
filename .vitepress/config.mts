@@ -102,7 +102,7 @@ export default withMermaid(defineConfig({
             { text: 'Attributes', link: '/guide/syntax/attributes' },
             { text: 'Control flow', link: '/guide/syntax/control-flow' },
             { text: 'Components & composition', link: '/guide/syntax/composition' },
-            { text: 'Props model', link: '/guide/syntax/props' },
+            { text: 'Component signatures', link: '/guide/syntax/props' },
             { text: 'Styling', link: '/guide/syntax/styling' },
             { text: 'JavaScript & scripts', link: '/guide/syntax/javascript' },
             { text: 'Pipelines & filters', link: '/guide/syntax/pipelines' },
