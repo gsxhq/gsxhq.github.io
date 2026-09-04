@@ -613,7 +613,7 @@
         },
         {
           "name": "entity.other.attribute-name.gsx",
-          "match": "[A-Za-z_@:][A-Za-z0-9_.:-]*"
+          "match": "[^\\s\"'<>/={}`\\p{Cc}]+"
         }
       ]
     },
@@ -746,7 +746,7 @@
     },
     "embedded-f-attribute": {
       "name": "meta.embedded.block.fstring.gsx",
-      "begin": "([A-Za-z_@:][A-Za-z0-9_.:-]*)(\\s*=\\s*)(\\{?)(f)([`\"])",
+      "begin": "([^\\s\"'<>/={}`\\p{Cc}]+)(\\s*=\\s*)(\\{?)(f)([`\"])",
       "beginCaptures": {
         "1": {
           "name": "entity.other.attribute-name.gsx"
@@ -782,7 +782,7 @@
     },
     "embedded-js-attribute": {
       "name": "meta.embedded.block.js.gsx",
-      "begin": "([A-Za-z_@:][A-Za-z0-9_.:-]*)(\\s*=\\s*)(\\{?)(js)([`\"])",
+      "begin": "([^\\s\"'<>/={}`\\p{Cc}]+)(\\s*=\\s*)(\\{?)(js)([`\"])",
       "beginCaptures": {
         "1": {
           "name": "entity.other.attribute-name.gsx"
@@ -821,7 +821,7 @@
     },
     "embedded-css-attribute": {
       "name": "meta.embedded.block.css.gsx",
-      "begin": "([A-Za-z_@:][A-Za-z0-9_.:-]*)(\\s*=\\s*)(\\{?)(css)([`\"])",
+      "begin": "([^\\s\"'<>/={}`\\p{Cc}]+)(\\s*=\\s*)(\\{?)(css)([`\"])",
       "beginCaptures": {
         "1": {
           "name": "entity.other.attribute-name.gsx"

@@ -702,6 +702,13 @@ onMounted(async () => {
         state.tagDepth++
         return 'tagName'
       }
+      // Attribute names, only inside a tag (tagDepth > 0): the HTML authoring
+      // rule the compiler uses — any run of non-space runes other than
+      // `"` `'` `<` `>` `/` `=` `{` `}` and backtick — so `.prop=`, `?disabled=`, `[a]=`,
+      // `(b)=`, `on:click|mod=` and `@click=` all highlight. A `!` or `:`
+      // glued to the `=` is the Go `!=`/`:=` operator of an in-tag
+      // expression, not a name, and `==` is never an attribute's `=`.
+      if (state.tagDepth > 0 && stream.match(/(?:[^\s"'<>/={}`!:]|[!:](?!=))+(?=\s*=(?!=))/)) return 'attributeName'
       if (stream.match(/\b[A-Za-z_][\w-]*(?=\s*=)/)) return 'attributeName'
       return tokenGoish(stream, state)
     },
