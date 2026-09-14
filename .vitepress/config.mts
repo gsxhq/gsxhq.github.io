@@ -132,6 +132,7 @@ export default withMermaid(defineConfig({
             { text: 'Render once', link: '/guide/patterns/render-once' },
             { text: 'Streaming flush', link: '/guide/patterns/streaming-flush' },
             { text: 'Package renderers', link: '/guide/patterns/package-renderers' },
+            { text: 'Translation keys', link: '/guide/patterns/i18n-keys' },
           ],
         },
         {
