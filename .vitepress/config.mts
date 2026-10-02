@@ -133,6 +133,7 @@ export default withMermaid(defineConfig({
             { text: 'Streaming flush', link: '/guide/patterns/streaming-flush' },
             { text: 'Package renderers', link: '/guide/patterns/package-renderers' },
             { text: 'Translation keys', link: '/guide/patterns/i18n-keys' },
+            { text: 'CSP nonce', link: '/guide/patterns/csp-nonce' },
           ],
         },
         {
