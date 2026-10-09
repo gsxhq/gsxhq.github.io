@@ -28,7 +28,11 @@ features:
     details: gsx.Node has the identical method set to templ.Component, so gsx output drops into the templ ecosystem without importing templ.
 ---
 
-> **[Status — alpha, v0.1.0.](/guide/status#releases-and-versioning)** gsx ships tagged releases from `v0.1.0`; the language and APIs may still change before 1.0.
+<script setup>
+import { data as gsx } from './.vitepress/theme/gsx-version.data.mjs'
+</script>
+
+> **[Status — alpha, {{ gsx.version }}.](/guide/status#releases-and-versioning)** gsx ships tagged releases from `v0.1.0`; the language and APIs may still change before 1.0.
 >
 > [gsx](https://github.com/gsxhq/gsx) — compiler & CLI ·
 > [gsxui](https://ui.gsxhq.dev/) — shadcn-style components for gsx ·
